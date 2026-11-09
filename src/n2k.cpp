@@ -7,8 +7,13 @@
 #include "config.h"
 #include "loghat.h"
 #include "anemo.h"
+// Las cabeceras de la librería no pasan -Werror (volatile ++ en C++20).
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wvolatile"
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <NMEA2000_mcp.h>
 #include <N2kMessages.h>
+#pragma GCC diagnostic pop
 #include <Preferences.h>
 
 namespace N2k {

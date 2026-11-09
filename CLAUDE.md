@@ -23,7 +23,7 @@ Punto 1 del «kit CAN» de Manuel (XIAO ESP32-S3 + XIAO CAN Bus Expansion Board 
 - CI: `.github/workflows/build.yml` (pruebas + compilación + `factory.bin` con esptool 4.x).
 
 ## Estado (2026-11-09)
-- Núcleo probado en el PC (48 comprobaciones). Firmware **sin compilar todavía** (no hay PlatformIO en la sesión; la CI lo compila al subir) y **sin probar** con el kit, un tracker ni un plotter.
+- Núcleo probado en el PC (48 comprobaciones). Firmware: **compila en la CI** (primera subida 2026-11-09; las cabeceras de NMEA2000_mcp van sin `-Wvolatile` en `n2k.cpp`); **sin probar** con el kit, un tracker ni un plotter.
 - Falta: comprobar con un Garmin GPSMAP que acepta los MMSI 8xxxxxxxx y cómo los muestra; mensajes APRS al plotter (¿129802?); lanzador en el instalador web del tracker; sección en la app (regla del ecosistema: todo controlable desde la app).
 
 ## Cómo trabajar

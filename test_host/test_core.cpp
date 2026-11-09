@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <math.h>
 #include "gc_gate.h"
+#include "gc_anemo.h"
 
 using namespace GC;
 static int checks = 0, fails = 0;
@@ -136,10 +137,24 @@ static void testGate() {
     CHECK(g.recent().size() <= 20 && !g.recent().empty());
 }
 
+static void testAnemo() {
+    Anemometer a;
+    uint32_t total = 0, t = 0;
+    a.sample(total, t);
+    for (int i = 0; i < 60; i++) { t += 1000; total += 10; a.sample(total, t); }
+    CHECK(a.have() && near(a.windMs(), 10 * 2.4 / 3.6) && near(a.avgMs(600), 10 * 2.4 / 3.6));
+    for (int i = 0; i < 3; i++) { t += 1000; total += 30; a.sample(total, t); }
+    for (int i = 0; i < 10; i++) { t += 1000; total += 10; a.sample(total, t); }
+    CHECK(near(a.gustMs(), 30 * 2.4 / 3.6) && near(a.avgMs(73), (70 * 10 + 90) / 73.0 * 2.4 / 3.6));
+    t += 10000; a.sample(total, t); CHECK(!a.have());
+    CHECK(Anemometer::beaufort(5.0) == 3 && Anemometer::beaufort(40) == 12);
+}
+
 int main() {
     testKissAx25();
     testAprs();
     testGate();
+    testAnemo();
     printf("%d comprobaciones, %d fallos\n", checks, fails);
     return fails ? 1 : 0;
 }

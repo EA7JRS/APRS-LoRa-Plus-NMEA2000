@@ -56,13 +56,14 @@ El tracker admite **una sola conexión Bluetooth**: si la app del móvil está c
 - Enciende la capa **AIS** del plotter: los blancos aparecen con el nombre de la estación (o el de la embarcación, con la etiqueta AIS).
 - En la lista de equipos NMEA 2000 aparece **APRS LoRa+ NMEA 2000** (función AIS), con la versión y el número de serie.
 - La temperatura y la humedad exteriores salen donde el plotter muestre los datos de ambiente.
+- Con anemómetro: la velocidad del viento (PGN 130306, sin dirección) en los datos de viento del plotter.
 - Un blanco deja de repetirse a los **30 min** sin oírlo (`ais.ttlMin`); el plotter lo borra después, según su propio tiempo de AIS perdido.
 
 ## 7. WebUI
 
 - **Tracker**: enlace (WiFi, BLE), bytes y tramas recibidos, posiciones, ignoradas y lejanas.
 - **NMEA 2000**: bus abierto (si no, el MCP2515 no contesta: cristal, CS, cableado), dirección en el bus, mensajes enviados y fallos, equipos oídos, posición y hora del barco.
-- **Ambiente**: temperatura, humedad, luz, reloj, batería.
+- **Ambiente**: temperatura, humedad, luz, reloj, batería; con anemómetro, viento de 3 s, medio de 2 y 10 min, racha, Beaufort e impulsos por segundo (para calibrar).
 - **Blancos AIS**: nombre, MMSI, clase, posición, rumbo y velocidad, distancia al barco y hace cuánto se oyó.
 - **Últimos paquetes**: los 20 últimos en texto TNC2.
 - **Configuración**: lo más usado en un formulario y el fichero entero en JSON.
@@ -101,6 +102,9 @@ Fichero `/gw_conf.json` (WebUI > Configuración > JSON):
 | `n2k.env`, `n2k.envS` | true, 5 | temperatura y humedad al bus, cada cuántos segundos |
 | `log.on`, `log.sda`, `log.scl` | true, 5, 6 | HAT XIAO-LOG por I2C (D4 / D5) |
 | `log.battery`, `log.batPin` | false, 2 | medir la batería por D1 |
+| `anemo.on`, `anemo.pin`, `anemo.pullup` | false, 4, true | anemómetro de cazoletas en D3 (`docs/HARDWARE.md`) |
+| `anemo.kmhPerHz` | 2.4 | km/h por impulso por segundo (calibración) |
+| `anemo.ref` | apparent | viento aparente (en el barco) o `true` (en tierra, fijo) |
 
 ## 10. Problemas
 
@@ -111,6 +115,7 @@ Fichero `/gw_conf.json` (WebUI > Configuración > JSON):
 | *TCP: no encuentro el tracker* | KISS WiFi activado en el tracker, los dos en la misma red; prueba con la IP del tracker |
 | *BLE: no aparece el tracker* | la app del móvil conectada al tracker por BLE (solo admite una conexión), BLE KISS apagado |
 | Ambiente vacío | el arreglo de D10 del XIAO-LOG; `log.on` |
+| Viento a 0 con viento | `anemo.on`, cable en D3 y GND; los impulsos de la WebUI deben subir al girar |
 | Alarmas de colisión | apartado 8 |
 
 ## 11. Licencia y créditos

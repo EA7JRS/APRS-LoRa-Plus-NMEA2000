@@ -6,6 +6,7 @@
 #include "n2k.h"
 #include "config.h"
 #include "loghat.h"
+#include "anemo.h"
 #include <NMEA2000_mcp.h>
 #include <N2kMessages.h>
 #include <Preferences.h>
@@ -15,11 +16,11 @@ namespace N2k {
     static tNMEA2000_mcp* bus = nullptr;
     static Status st;
     static Preferences prefs;
-    static uint32_t lastEnv = 0, lastEvent = 0;
+    static uint32_t lastEnv = 0, lastEvent = 0, lastWind = 0;
     static uint8_t sid = 0;
     static uint8_t seen[32];                     // fuentes oídas (bit por dirección)
 
-    static const unsigned long TX[] = {129038L, 129039L, 129794L, 129809L, 129810L, 130311L, 130312L, 130313L, 0};
+    static const unsigned long TX[] = {129038L, 129039L, 129794L, 129809L, 129810L, 130306L, 130311L, 130312L, 130313L, 0};
     static const unsigned long RX[] = {126992L, 129025L, 129029L, 0};
 
     static void setTime(uint16_t days, double secs) {
@@ -163,6 +164,13 @@ namespace N2k {
                 lastEvent = now;
                 if (e.kind != GC::GateEvent::LOST && st.open) sendStation(gate, e);
             }
+        }
+        // Viento (130306) cada segundo: velocidad de los últimos 3 s; sin veleta, sin dirección
+        if (st.open && Anemo::active() && now - lastWind >= 1000) {
+            lastWind = now;
+            tN2kMsg m;
+            SetN2kPGN130306(m, 0xFF, Anemo::meter().windMs(), N2kDoubleNA, Cfg.windRef == "true" ? N2kWind_True_North : N2kWind_Apparent);
+            send(m);
         }
         if (Cfg.sendEnv && st.open && now - lastEnv >= (uint32_t)Cfg.envS * 1000) {
             lastEnv = now;

@@ -31,6 +31,8 @@ namespace Config {
         a["objects"] = c.objects; a["ignore"] = c.ignore;
         JsonObject n = o["n2k"].to<JsonObject>();
         n["cs"] = c.canCs; n["mhz"] = c.canMHz; n["int"] = c.canInt; n["addr"] = c.n2kAddr; n["env"] = c.sendEnv; n["envS"] = c.envS;
+        JsonObject an = o["anemo"].to<JsonObject>();
+        an["on"] = c.anemoOn; an["pin"] = c.anemoPin; an["kmhPerHz"] = c.anemoKmhHz; an["pullup"] = c.anemoPullup; an["ref"] = c.windRef;
         JsonObject l = o["log"].to<JsonObject>();
         l["on"] = c.logHat; l["sda"] = c.sda; l["scl"] = c.scl; l["battery"] = c.battery; l["batPin"] = c.batPin;
     }
@@ -47,6 +49,9 @@ namespace Config {
         get(a, "objects", n.objects); getS(a, "ignore", n.ignore);
         JsonObjectConst k = in["n2k"];
         get(k, "cs", n.canCs); get(k, "mhz", n.canMHz); get(k, "int", n.canInt); get(k, "addr", n.n2kAddr); get(k, "env", n.sendEnv); get(k, "envS", n.envS);
+        JsonObjectConst an = in["anemo"];
+        get(an, "on", n.anemoOn); get(an, "pin", n.anemoPin); get(an, "pullup", n.anemoPullup); getS(an, "ref", n.windRef);
+        if (an["kmhPerHz"].is<double>()) n.anemoKmhHz = an["kmhPerHz"].as<double>();
         JsonObjectConst l = in["log"];
         get(l, "on", n.logHat); get(l, "sda", n.sda); get(l, "scl", n.scl); get(l, "battery", n.battery); get(l, "batPin", n.batPin);
 
@@ -65,6 +70,13 @@ namespace Config {
         if (n.n2kAddr < 0 || n.n2kAddr > 251) return "n2k.addr 0-251";
         if (n.envS < 1 || n.envS > 60) return "n2k.envS 1-60";
         for (int used : {7, 8, 9, n.sda, n.scl}) if (n.canCs == used) return "n2k.cs (SPI / I2C pin)";
+        if (n.anemoOn) {
+            if (n.anemoPin < 0 || n.anemoPin > 48) return "anemo.pin";
+            for (int used : {7, 8, 9, n.canCs, n.sda, n.scl, 1}) if (n.anemoPin == used) return "anemo.pin (en uso: SPI, CS, I2C o reloj)";
+            if (n.battery && n.anemoPin == n.batPin) return "anemo.pin (batería)";
+        }
+        if (!(n.anemoKmhHz > 0.1 && n.anemoKmhHz < 50)) return "anemo.kmhPerHz 0.1-50";
+        if (n.windRef != "apparent" && n.windRef != "true") return "anemo.ref apparent | true";
         return "";
     }
 

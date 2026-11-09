@@ -7,6 +7,7 @@
 #include "config.h"
 #include "n2k.h"
 #include "loghat.h"
+#include "anemo.h"
 #include "tracker_link.h"
 #include "web_page.h"
 #include <WiFi.h>
@@ -81,6 +82,15 @@ namespace Net {
         if (!isnan(h.humPct)) lg["h"] = round(h.humPct);
         if (!isnan(h.lux)) lg["lux"] = round(h.lux);
         if (!isnan(h.batV)) lg["bat"] = round(h.batV * 100) / 100;
+        if (Cfg.anemoOn) {
+            JsonObject an = d["anemo"].to<JsonObject>();
+            const GC::Anemometer& a = Anemo::meter();
+            an["pulses"] = Anemo::pulses(); an["s"] = a.seconds(); an["hz"] = round(a.hz(3) * 100) / 100;
+            if (Anemo::active()) {
+                an["ws"] = round(a.windMs() * 10) / 10; an["avg2"] = round(a.avgMs(120) * 10) / 10; an["avg10"] = round(a.avgMs(600) * 10) / 10;
+                an["gust"] = round(a.gustMs(600) * 10) / 10; an["bft"] = GC::Anemometer::beaufort(a.avgMs(120));
+            }
+        }
         time_t t = time(nullptr);
         if (t > 1700000000) d["time"] = (uint32_t)t;
         JsonObject w = d["wifi"].to<JsonObject>();

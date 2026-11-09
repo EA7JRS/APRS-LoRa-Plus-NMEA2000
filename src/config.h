@@ -49,6 +49,13 @@ struct GwConfig {
     bool        sendEnv = true;                  // temperatura y humedad del HAT al bus
     int         envS = 5;
 
+    // Anemómetro de cazoletas (ampolla reed a masa): D3 = GPIO4
+    bool        anemoOn = false;
+    int         anemoPin = 4;
+    double      anemoKmhHz = 2.4;                // km/h por impulso por segundo (Misol / Fine Offset 2,4; Davis 6410 3,62)
+    bool        anemoPullup = true;
+    std::string windRef = "apparent";            // "apparent" en el barco (relativo a la proa) o "true" en tierra (fijo)
+
     // HAT XIAO-LOG (SHT40, BH1750, PCF8563): I2C en D4 / D5
     bool        logHat = true;
     int         sda = 5, scl = 6;

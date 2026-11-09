@@ -6,7 +6,8 @@
 4. **WiFi**: join **APRS-N2K** (password `aprsn2000`) and open `http://192.168.4.1`.
 5. **Tracker**: in its WebUI, enable **KISS WiFi** and set its WiFi as a client of **APRS-N2K** (or both on the boat's network). The gateway finds it by itself. Over Bluetooth: *Recibir del tracker = Bluetooth*, with the phone app disconnected from the tracker's BLE.
 6. **Chartplotter**: AIS layer on. APRS stations appear as AIS targets with their name.
-7. **Collision alarms**: set a **maximum distance** (`ais.maxKm`) or list the callsigns you do not want in **No enviar**.
+7. **Anemometer** (optional): reed switch between D3 and GND; *Anemómetro (D3) = Sí* in the configuration. Calibrate with *km/h por impulso por segundo* (2.4 by default) watching the Hz under *Ambiente*.
+8. **Collision alarms**: set a **maximum distance** (`ais.maxKm`) or list the callsigns you do not want in **No enviar**.
 
 > These are not real AIS targets: do not use them for collision avoidance.
 

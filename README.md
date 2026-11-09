@@ -11,7 +11,7 @@ Copyright (C) 2026 Manuel - EA7JRS · GPL-3.0-or-later · versión **5.3.5** (la
 ```
 
 - **Blancos AIS**: posiciones APRS sin comprimir, comprimidas y Mic-E, objetos e ítems, tráfico de terceros; rumbo, velocidad y altitud. MMSI ficticio `8 MID nnnnn` (el mismo que el tracker en NMEA 0183) o el real con la etiqueta `AIS:` del perfil náutico. Clase B (129039, 129809, 129810) o A (129038, 129794).
-- **Ambiente**: 130311, 130312, 130313.
+- **Ambiente**: 130311, 130312, 130313; anemómetro de cazoletas (opcional, D3): 130306.
 - **Del bus**: posición del barco (filtro de distancia) y hora (al reloj del HAT).
 - **WebUI**: estado del enlace y del bus, blancos, ambiente, últimos paquetes, configuración y actualización del firmware.
 - **Solo escucha**: no transmite por radio.

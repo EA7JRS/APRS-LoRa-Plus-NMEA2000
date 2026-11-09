@@ -14,6 +14,7 @@
 #include "config.h"
 #include "gc_gate.h"
 #include "loghat.h"
+#include "anemo.h"
 #include "n2k.h"
 #include "net.h"
 #include "tracker_link.h"
@@ -67,6 +68,7 @@ void setup() {
     Config::begin();
     applyGateOptions();
     LogHat::begin();
+    Anemo::begin();
     struct tm t;
     if (LogHat::rtcGet(t)) {                                    // hora del reloj hasta que llegue la del bus
         timeval tv{mktime(&t), 0};
@@ -83,6 +85,7 @@ void loop() {
     while ((n = TrackerLink::read(buf, sizeof buf)) > 0) gate.onKissBytes(buf, n, millis());
     N2k::loop(gate);
     LogHat::loop();
+    Anemo::loop();
     Net::loop();
     syncClock();
     usbLoop();

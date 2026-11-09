@@ -6,7 +6,8 @@
 4. **WiFi**: conéctate a **APRS-N2K** (clave `aprsn2000`) y abre `http://192.168.4.1`.
 5. **Tracker**: en su WebUI, **KISS WiFi** activado y su WiFi como cliente de **APRS-N2K** (o los dos en la red del barco). La pasarela lo encuentra sola. Por Bluetooth: *Recibir del tracker = Bluetooth*, con la app del móvil desconectada del tracker por BLE.
 6. **Plotter**: capa AIS encendida. Las estaciones APRS salen como blancos AIS con su nombre.
-7. **Alarmas de colisión**: pon una **distancia máxima** (`ais.maxKm`) o los indicativos que no quieras ver en **No enviar**.
+7. **Anemómetro** (opcional): ampolla reed entre D3 y GND; *Anemómetro (D3) = Sí* en la configuración. Calibra con *km/h por impulso por segundo* (2,4 por defecto) mirando los Hz en *Ambiente*.
+8. **Alarmas de colisión**: pon una **distancia máxima** (`ais.maxKm`) o los indicativos que no quieras ver en **No enviar**.
 
 > No son blancos AIS reales: no sirven para evitar colisiones.
 

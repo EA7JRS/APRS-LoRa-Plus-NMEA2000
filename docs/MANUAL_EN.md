@@ -53,6 +53,8 @@ The tracker accepts **only one Bluetooth connection**: if the phone app is conne
 
 ## 6. On the chartplotter
 
+- With an anemometer: wind speed (PGN 130306, no direction) in the plotter's wind data.
+
 - Turn on the plotter's **AIS** layer: targets appear with the station's name (or the vessel's name, with the AIS tag).
 - The NMEA 2000 device list shows **APRS LoRa+ NMEA 2000** (AIS function), with its version and serial number.
 - Outside temperature and humidity appear wherever the plotter shows environmental data.
@@ -62,7 +64,7 @@ The tracker accepts **only one Bluetooth connection**: if the phone app is conne
 
 - **Tracker**: link (WiFi, BLE), bytes and frames received, positions, ignored and distant ones.
 - **NMEA 2000**: bus open (if not, the MCP2515 does not answer: crystal, CS, wiring), bus address, messages sent and failures, devices heard, boat position and time.
-- **Ambiente**: temperature, humidity, light, clock, battery.
+- **Ambiente**: temperature, humidity, light, clock, battery; with an anemometer, 3-s wind, 2 and 10 min averages, gust, Beaufort and pulses per second (for calibration).
 - **Blancos AIS**: name, MMSI, class, position, course and speed, distance to the boat and how long ago it was heard.
 - **Últimos paquetes**: the last 20 in TNC2 text.
 - **Configuración**: the most used settings in a form, and the whole file as JSON.
@@ -101,6 +103,9 @@ File `/gw_conf.json` (WebUI > Configuración > JSON):
 | `n2k.env`, `n2k.envS` | true, 5 | temperature and humidity to the bus, every how many seconds |
 | `log.on`, `log.sda`, `log.scl` | true, 5, 6 | XIAO-LOG HAT over I2C (D4 / D5) |
 | `log.battery`, `log.batPin` | false, 2 | measure the battery on D1 |
+| `anemo.on`, `anemo.pin`, `anemo.pullup` | false, 4, true | cup anemometer on D3 (`docs/HARDWARE.md`) |
+| `anemo.kmhPerHz` | 2.4 | km/h per pulse per second (calibration) |
+| `anemo.ref` | apparent | apparent wind (on the boat) or `true` (on land, fixed) |
 
 ## 10. Troubleshooting
 

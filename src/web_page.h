@@ -32,7 +32,7 @@ pre{white-space:pre-wrap;word-break:break-all;font-size:12px;margin:0;max-height
 <main>
 <div class="c"><h3>Tracker</h3><table class="kv" id="lk"></table></div>
 <div class="c"><h3>NMEA 2000</h3><table class="kv" id="nk"></table></div>
-<div class="c"><h3>Ambiente (HAT XIAO-LOG)</h3><table class="kv" id="lg"></table></div>
+<div class="c"><h3>Ambiente (HAT XIAO-LOG)</h3><table class="kv" id="lg"></table><table class="kv" id="an"></table></div>
 <div class="c w"><h3>Blancos AIS en el plotter <span class="mut" id="cnt"></span></h3><table id="st"><thead><tr><th>Estación</th><th>MMSI</th><th>Clase</th><th>Posición</th><th>Rumbo / vel.</th><th>Dist.</th><th>Oída</th></tr></thead><tbody></tbody></table></div>
 <div class="c w"><h3>Últimos paquetes</h3><pre id="rc"></pre></div>
 <div class="c w"><h3>Configuración</h3>
@@ -53,6 +53,9 @@ pre{white-space:pre-wrap;word-break:break-all;font-size:12px;margin:0;max-height
 <label>Cristal del MCP2515<select id="f_mhz"><option value="16">16 MHz</option><option value="8">8 MHz</option></select></label>
 <label>Ambiente al bus<select id="f_env"><option value="1">Sí</option><option value="0">No</option></select></label>
 <label>Batería en D1<select id="f_bat"><option value="0">No</option><option value="1">Sí</option></select></label>
+<label>Anemómetro (D3)<select id="f_an"><option value="0">No</option><option value="1">Sí</option></select></label>
+<label>km/h por impulso por segundo<input id="f_kmh" type="number" step="0.01"></label>
+<label>Viento<select id="f_wref"><option value="apparent">Aparente (en el barco)</option><option value="true">Verdadero (en tierra)</option></select></label>
 </div>
 <div class="row"><button onclick="saveForm()">Guardar y reiniciar</button><button onclick="loadCfg()">Releer</button><span class="mut" id="msg"></span></div>
 <details><summary class="mut">Configuración entera (JSON)</summary><textarea id="raw"></textarea>
@@ -60,7 +63,7 @@ pre{white-space:pre-wrap;word-break:break-all;font-size:12px;margin:0;max-height
 </div>
 <div class="c w" id="about"><h3>Acerca de</h3>
 <p>APRS LoRa+ NMEA 2000 <span id="ver2"></span> - by Manuel EA7JRS · © 2026 Manuel - EA7JRS</p>
-<p class="mut">Las estaciones APRS que oye el tracker salen en el plotter como blancos AIS (clase B: PGN 129039, 129809 y 129810; clase A con la etiqueta AIS del perfil náutico: 129038 y 129794), con el mismo MMSI que el tracker en su salida NMEA 0183. Temperatura y humedad: 130311, 130312 y 130313. No son blancos AIS reales: no sirven para evitar colisiones.</p>
+<p class="mut">Las estaciones APRS que oye el tracker salen en el plotter como blancos AIS (clase B: PGN 129039, 129809 y 129810; clase A con la etiqueta AIS del perfil náutico: 129038 y 129794), con el mismo MMSI que el tracker en su salida NMEA 0183. Temperatura y humedad: 130311, 130312 y 130313. Viento del anemómetro: 130306. No son blancos AIS reales: no sirven para evitar colisiones.</p>
 <p class="mut">Librería NMEA2000 y NMEA2000_mcp (Timo Lappalainen, MIT), CAN_BUS_Shield (Seeed Studio, MIT), NimBLE-Arduino, ArduinoJson. Licencia GPL-3.0-or-later. <a href="https://github.com/EA7JRS">github.com/EA7JRS</a></p>
 </div>
 </main>
@@ -81,6 +84,8 @@ const n=s.n2k;kv('nk',[['Bus',yes(n.open,'abierto','sin MCP2515 (cristal, CS, ca
 ['WiFi',(s.wifi.ap?'punto de acceso '+esc(s.wifi.ssid)+' · '+(s.wifi.clients||0)+' equipos':esc(s.wifi.ssid)+(s.wifi.rssi?' ('+s.wifi.rssi+' dBm)':''))]]);
 const g=s.log;kv('lg',g.on?[['Temperatura',g.t!=null?g.t+' °C':(g.sht?'—':'sin SHT40')],['Humedad',g.h!=null?g.h+' %':'—'],['Luz',g.lux!=null?g.lux+' lx':(g.light?'—':'sin BH1750')],
 ['Reloj',g.rtc?'PCF8563':'no'],g.bat!=null?['Batería',g.bat+' V']:null,['Hora',s.time?new Date(s.time*1000).toISOString().replace('T',' ').slice(0,19)+' UTC':'—']]:[['HAT','apagado']]);
+const a=s.anemo,kn=v=>v==null?'—':v+' m/s · '+(v*3.6).toFixed(1)+' km/h · '+(v*1.94384).toFixed(1)+' kn';
+kv('an',a?[['Viento (3 s)',kn(a.ws)],['Medio 2 / 10 min',a.avg2!=null?a.avg2+' / '+a.avg10+' m/s'+(a.bft!=null?' · Beaufort '+a.bft:''):'—'],['Racha (10 min)',kn(a.gust)],['Impulsos',a.hz+' Hz · '+a.pulses+' en total']]:[]);
 $('cnt').textContent=s.gate.active+' activos';
 $('st').tBodies[0].innerHTML=s.stations.sort((a,b)=>a.ageS-b.ageS).map(o=>`<tr class="${o.live?'':'mut'}"><td>${esc(o.name)}${o.name!=o.call?' <span class="mut">'+esc(o.call)+'</span>':''}</td><td>${o.mmsi}</td><td>${o.cls}</td><td>${dm(o.lat,'N','S')} ${dm(o.lon,'E','W')}</td><td>${o.cog!=null?o.cog+'°':'—'} ${o.sog!=null?o.sog+' kn':''}</td><td>${o.km!=null?o.km+' km':'—'}</td><td>${ago(o.ageS)}</td></tr>`).join('')||'<tr><td colspan="7" class="mut">Aún no hay estaciones con posición</td></tr>';
 $('rc').textContent=s.recent.slice().reverse().join('\n');
@@ -88,13 +93,14 @@ $('rc').textContent=s.recent.slice().reverse().join('\n');
 async function loadCfg(){cfg=await (await fetch('/api/config')).json();$('raw').value=JSON.stringify(cfg,null,2);
 const t=cfg.tracker,a=cfg.ais,k=cfg.n2k,w=cfg.wifi;$('f_src').value=t.src;$('f_host').value=t.tcpHost;$('f_port').value=t.tcpPort;$('f_ble').value=t.bleName;
 $('f_wm').value=w.mode;$('f_ssid').value=w.ssid;$('f_pass').value=w.pass;$('f_ap').value=w.apPass;$('f_mid').value=a.mid;$('f_ref').value=a.refreshS;$('f_ttl').value=a.ttlMin;
-$('f_km').value=a.maxKm;$('f_ign').value=a.ignore;$('f_mhz').value=k.mhz;$('f_env').value=k.env?1:0;$('f_bat').value=cfg.log.battery?1:0;}
+$('f_km').value=a.maxKm;$('f_ign').value=a.ignore;$('f_mhz').value=k.mhz;$('f_env').value=k.env?1:0;$('f_bat').value=cfg.log.battery?1:0;$('f_an').value=cfg.anemo.on?1:0;$('f_kmh').value=cfg.anemo.kmhPerHz;$('f_wref').value=cfg.anemo.ref;}
 async function post(u,b){const r=await fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:b});const j=await r.json().catch(()=>({}));
 $('msg').textContent=j.ok?'Guardado; reiniciando...':('Error: '+(j.err||r.status));if(j.ok)setTimeout(()=>location.reload(),6000);}
 function saveForm(){const c={tracker:{src:$('f_src').value,tcpHost:$('f_host').value.trim(),tcpPort:+$('f_port').value,bleName:$('f_ble').value.trim()},
 wifi:{mode:+$('f_wm').value,ssid:$('f_ssid').value,pass:$('f_pass').value,apPass:$('f_ap').value},
 ais:{mid:+$('f_mid').value,refreshS:+$('f_ref').value,ttlMin:+$('f_ttl').value,maxKm:+$('f_km').value,ignore:$('f_ign').value.trim()},
-n2k:{mhz:+$('f_mhz').value,env:$('f_env').value=='1'},log:{battery:$('f_bat').value=='1'}};post('/api/config',JSON.stringify(c));}
+n2k:{mhz:+$('f_mhz').value,env:$('f_env').value=='1'},log:{battery:$('f_bat').value=='1'},
+anemo:{on:$('f_an').value=='1',kmhPerHz:+$('f_kmh').value,ref:$('f_wref').value}};post('/api/config',JSON.stringify(c));}
 function saveRaw(){try{JSON.parse($('raw').value)}catch(e){$('msg').textContent='JSON no válido';return}post('/api/config',$('raw').value);}
 tick();loadCfg();setInterval(tick,2000);
 </script></body></html>)HTML";

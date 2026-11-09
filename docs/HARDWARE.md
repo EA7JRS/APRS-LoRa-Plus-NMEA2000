@@ -18,7 +18,8 @@ Copyright (C) 2026 Manuel - EA7JRS. GPL-3.0-or-later.
 |---|---|---|---|
 | D0 | 1 | — | aviso del reloj (PCF8563 INT) |
 | D1 | 2 | — | batería (divisor 100 k / 100 k) |
-| D2, D3 | 3, 4 | — | — (libres) |
+| D2 | 3 | — | — (libre) |
+| D3 | 4 | — | anemómetro de cazoletas (opcional) |
 | D4 / D5 | 5 / 6 | — | I2C SDA / SCL |
 | D6 | 43 | — | — |
 | D7 | 44 | **CS del MCP2515** | — |
@@ -53,6 +54,15 @@ El conector Micro-C de NMEA 2000 (5 pines):
 - Consumo: unos 100-150 mA a 5 V, es decir, unos 70 mA a 12 V tras el convertidor: cuenta **2 LEN** (1 LEN = 50 mA) al calcular el bus.
 - Velocidad: 250 kbit/s, fija.
 - **Cristal del MCP2515**: mira lo que pone el cristal plateado del kit CAN (16.000 u 8.000). Si no coincide con `n2k.mhz` (16 por defecto), el bus no funciona.
+
+## Anemómetro de cazoletas (opcional)
+
+Cualquier anemómetro de impulsos con ampolla reed (contacto que abre y cierra al pasar el imán):
+
+- Un hilo a **D3** (GPIO4), el otro a **GND**. La resistencia de subida interna basta para cables cortos; con más de 10 m, una de 10 k de D3 a 3V3 y `anemo.pullup` false.
+- Se cuentan los flancos de bajada; los rebotes de menos de 5 ms se descartan.
+- Calibración: `anemo.kmhPerHz` (km/h por impulso por segundo, 2,4 por defecto, la de los anemómetros de estación meteorológica más comunes). Para medirlo: con viento conocido (o en coche, con viento en calma, el anemómetro fuera de la ventanilla) mira los **Hz** de la WebUI y divide la velocidad en km/h entre ellos.
+- En el bus: PGN **130306** cada segundo (viento de 3 s, dirección no disponible; aparente o verdadero según `anemo.ref`).
 
 ## Montaje
 

@@ -1,0 +1,9 @@
+{
+  "name": "GateCore",
+  "version": "5.3.5",
+  "description": "APRS LoRa+ NMEA 2000: KISS, AX.25, APRS y tabla AIS sin Arduino",
+  "license": "GPL-3.0-or-later",
+  "frameworks": "*",
+  "platforms": "*",
+  "build": { "flags": "-std=gnu++17" }
+}

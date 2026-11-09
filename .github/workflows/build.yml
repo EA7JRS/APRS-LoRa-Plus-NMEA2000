@@ -1,0 +1,53 @@
+# APRS LoRa+ NMEA 2000 - Copyright (C) 2026 Manuel - EA7JRS - GPL-3.0-or-later
+name: Build
+
+on:
+    push:
+        branches: ['*']
+    pull_request:
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+jobs:
+    core-tests:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - name: Pruebas del nucleo (KISS, AX.25, APRS, tabla AIS)
+              run: make -C test_host run
+
+    firmware:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-python@v5
+              with:
+                  python-version: "3.13"
+            - uses: actions/cache@v4
+              with:
+                  path: |
+                      ~/.platformio/.cache
+                      ~/.platformio/packages
+                      ~/.platformio/platforms
+                  key: pio-${{ hashFiles('platformio.ini') }}
+            - name: PlatformIO
+              run: pip install --upgrade platformio "esptool>=4.8,<5"
+            - name: Compilar (con reintentos por las descargas de GitHub)
+              run: |
+                  for i in 1 2 3; do pio run -e xiao_esp32s3_can && exit 0; echo "intento $i fallido"; sleep 20; done; exit 1
+            - name: Imagen completa (instalar desde cero en 0x0)
+              run: |
+                  B=.pio/build/xiao_esp32s3_can
+                  APP0=$(find ~/.platformio/packages -path '*tools/partitions/boot_app0.bin' | head -n 1)
+                  esptool.py --chip esp32s3 merge_bin -o $B/factory.bin 0x0 $B/bootloader.bin 0x8000 $B/partitions.bin 0xe000 "$APP0" 0x10000 $B/firmware.bin
+                  ls -l $B/*.bin
+            - uses: actions/upload-artifact@v4
+              with:
+                  name: firmware-xiao_esp32s3_can
+                  path: |
+                      .pio/build/xiao_esp32s3_can/firmware.bin
+                      .pio/build/xiao_esp32s3_can/factory.bin
+                      .pio/build/xiao_esp32s3_can/bootloader.bin
+                      .pio/build/xiao_esp32s3_can/partitions.bin

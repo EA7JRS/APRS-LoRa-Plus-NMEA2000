@@ -62,7 +62,7 @@ pre{white-space:pre-wrap;word-break:break-all;font-size:12px;margin:0;max-height
 <div class="row"><button onclick="saveRaw()">Guardar JSON y reiniciar</button><button onclick="post('/api/reboot','')">Reiniciar</button><a href="/update">Actualizar firmware</a></div></details>
 </div>
 <div class="c w" id="about"><h3>Acerca de</h3>
-<p>APRS LoRa+ NMEA 2000 <span id="ver2"></span> - by Manuel EA7JRS · © 2026 Manuel - EA7JRS</p>
+<p>APRS LoRa+ NMEA 2000 <span id="ver2"></span> · © 2026 Manuel - EA7JRS</p>
 <p class="mut">Las estaciones APRS que oye el tracker salen en el plotter como blancos AIS (clase B: PGN 129039, 129809 y 129810; clase A con la etiqueta AIS del perfil náutico: 129038 y 129794), con el mismo MMSI que el tracker en su salida NMEA 0183. Temperatura y humedad: 130311, 130312 y 130313. Viento del anemómetro: 130306. No son blancos AIS reales: no sirven para evitar colisiones.</p>
 <p class="mut">Librería NMEA2000 y NMEA2000_mcp (Timo Lappalainen, MIT), CAN_BUS_Shield (Seeed Studio, MIT), NimBLE-Arduino, ArduinoJson. Licencia GPL-3.0-or-later. <a href="https://github.com/EA7JRS">github.com/EA7JRS</a></p>
 </div>

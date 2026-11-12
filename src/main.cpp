@@ -64,7 +64,8 @@ static void usbLoop() {
 void setup() {
     Serial.begin(115200);
     delay(300);
-    Serial.printf("\nAPRS LoRa+ NMEA 2000 %s - (C) 2026 Manuel - EA7JRS\n", GW_VERSION);
+    Serial.printf("\nAPRS LoRa+ NMEA 2000 %s\n", GW_VERSION);
+    Serial.println("[INFO][Main] APRS LoRa+ (c) 2026 Manuel - EA7JRS");      // la misma linea en todos los equipos APRS LoRa+
     Config::begin();
     applyGateOptions();
     LogHat::begin();

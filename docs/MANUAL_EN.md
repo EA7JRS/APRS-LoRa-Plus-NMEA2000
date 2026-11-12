@@ -1,6 +1,6 @@
 # APRS LoRa+ NMEA 2000 — User manual
 
-Version 5.4.3 · Copyright (C) 2026 Manuel - EA7JRS · GPL-3.0-or-later
+Version 5.4.4 · Copyright (C) 2026 Manuel - EA7JRS · GPL-3.0-or-later
 
 ## 1. What it is
 

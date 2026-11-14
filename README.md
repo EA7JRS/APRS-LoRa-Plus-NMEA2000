@@ -30,6 +30,8 @@ La pasarela trae WiFi y WebUI propios (puerto 80: `/`, `/api/status`, `/api/conf
 
 Nombre común `APRS-N2K` para la red/AP, mDNS (`APRS-N2K.local`) y Bluetooth. Detalle en el [manual](docs/MANUAL_ES.md#4-primer-arranque).
 
+**Hora**: la toma del GPS/plotter del bus NMEA 2000 (PGN 126992 o 129029) y la guarda en el reloj RTC del HAT XIAO-LOG. En modo cliente WiFi, además sincroniza por **NTP `ntp.roa.es`** (reserva; el GPS del bus manda 6 h sobre NTP). No necesita hora precisa para funcionar: los blancos AIS salen igual.
+
 ## Documentación
 
 - **Manual de usuario**: [español](docs/MANUAL_ES.md) · [English](docs/MANUAL_EN.md)

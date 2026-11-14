@@ -32,6 +32,7 @@ The gateway creates the WiFi network **APRS-N2K** (password `aprsn2000`, at leas
 
 - **WebUI password**: in the JSON configuration, `pin`. The factory default is **`123456`** (the same control PIN used across the APRS LoRa+ ecosystem: tracker, plotter, app). Saving changes or updating the firmware then asks for user `admin` and that password. Leave it **empty** for no password. **Change it** if the gateway is reachable from the boat's network.
 - **WiFi client**: *WiFi = Cliente de otra red*, with the boat's network and password. If it cannot join within 30 s, it brings up its own network again (rescue).
+- **Time**: the gateway does not need accurate time to work. It takes it from the GNSS/chartplotter on the NMEA 2000 bus (PGN 126992 or 129029) and keeps it in the XIAO-LOG HAT RTC. In WiFi client mode it also syncs over **NTP `ntp.roa.es`** (fallback; the bus GNSS takes priority over NTP for 6 h).
 
 ## 5. Connecting the tracker
 

@@ -15,6 +15,8 @@
 #include <HTTPUpdateServer.h>
 #include <ESPmDNS.h>
 #include <time.h>
+#include <sys/time.h>
+#include <esp_sntp.h>
 
 namespace Net {
 
@@ -137,6 +139,29 @@ namespace Net {
         Serial.printf("red: %s %s\n", ap ? "punto de acceso" : "cliente", ip().c_str());
     }
 
+    // NTP de reserva (solo en modo cliente, cuando hay internet). El GPS del bus NMEA 2000 manda 6 h sobre NTP:
+    // si hay hora reciente del bus (126992 / 129029), se mantiene; si no, se acepta la de NTP y se guarda en el RTC.
+    static bool ntpStarted = false;
+    static void onNtp(struct timeval*) {
+        const auto& n = N2k::status();
+        uint32_t now = millis();
+        if (n.hasTime && now - n.timeAt < 6UL * 3600000UL) {
+            struct timeval tv = { n.time + (time_t)((now - n.timeAt) / 1000), 0 };
+            settimeofday(&tv, nullptr);
+            return;
+        }
+        time_t t = time(nullptr);
+        struct tm tmv; gmtime_r(&t, &tmv);
+        LogHat::rtcSet(tmv);
+    }
+    static void startNtp() {
+        if (ntpStarted) return;
+        ntpStarted = true;
+        sntp_set_time_sync_notification_cb(onNtp);
+        configTzTime("UTC0", "ntp.roa.es", "hora.roa.es", "pool.ntp.org");
+        Serial.println("hora: NTP ntp.roa.es (reserva; el GPS del bus manda)");
+    }
+
     static void startAp() {
         WiFi.mode(Cfg.wifiMode == 1 ? WIFI_AP_STA : WIFI_AP);
         WiFi.softAP(Cfg.name.c_str(), Cfg.apPass.c_str());
@@ -161,6 +186,7 @@ namespace Net {
             if (WiFi.status() == WL_CONNECTED) startServices();
             else if (!started && millis() - staSince > 30000) startAp();          // sin red: punto de acceso de rescate
         }
+        if (Cfg.wifiMode == 1 && WiFi.status() == WL_CONNECTED) startNtp();        // internet: NTP de reserva
         if (started) web.handleClient();
     }
 }

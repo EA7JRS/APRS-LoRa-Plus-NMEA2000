@@ -32,6 +32,7 @@ La pasarela crea la red WiFi **APRS-N2K** (clave `aprsn2000`, mínimo 8 caracter
 
 - **Clave de la WebUI**: en la configuración JSON, `pin`. De fábrica es **`123456`** (el mismo PIN de control del resto del ecosistema APRS LoRa+: tracker, plotter, app). Para guardar cambios o actualizar el firmware piden usuario `admin` y esa clave. Déjala **vacía** para no pedir clave. **Cámbiala** si la pasarela es accesible desde la red del barco.
 - **WiFi cliente**: *WiFi = Cliente de otra red*, con la red y la clave del barco. Si en 30 s no entra, vuelve a crear su red (rescate).
+- **Hora**: la pasarela no necesita hora precisa para funcionar. La toma del GPS/plotter del bus NMEA 2000 (PGN 126992 o 129029) y la guarda en el reloj RTC del HAT XIAO-LOG. En modo cliente WiFi sincroniza además por **NTP `ntp.roa.es`** (reserva; el GPS del bus tiene prioridad 6 h sobre NTP).
 
 ## 5. Conectar el tracker
 

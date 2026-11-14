@@ -17,13 +17,14 @@
 #include <Preferences.h>
 #include <cstring>
 #include <ctime>
+#include <cmath>
 
 namespace N2k {
 
     static tNMEA2000_mcp* bus = nullptr;
     static Status st;
     static Preferences prefs;
-    static uint32_t lastEnv = 0, lastEvent = 0, lastWind = 0, lastGps = 0;
+    static uint32_t lastEnv = 0, lastEvent = 0, lastWind = 0, lastGps = 0, lastWx = 0;
     static uint8_t sid = 0;
     static uint8_t seen[32];                     // fuentes oídas (bit por dirección)
 
@@ -212,6 +213,23 @@ namespace N2k {
         if (Cfg.sendEnv && st.open && now - lastEnv >= (uint32_t)Cfg.envS * 1000) {
             lastEnv = now;
             sendEnvironment();
+        }
+        // Tiempo de internet de la app (viento/presión/temperatura) al bus, 1 vez/s, solo si no hay sensor del HAT fresco
+        if (Cfg.wxOut && st.open && now - lastWx >= 1000) {
+            const LogHat::Data& d = LogHat::data();
+            const bool localEnv = Cfg.sendEnv && Cfg.logHat && d.at && now - d.at < 10000;
+            GC::AprsWx wx; uint32_t at;
+            if (!localEnv && gate.ownWx(wx, at) && now - at < 1800000 && wx.valid) {   // la meteo vale 30 min
+                lastWx = now;
+                sid = (uint8_t)((sid + 1) % 253);
+                tN2kMsg m;
+                if (wx.windDir >= 0 && std::isfinite(wx.windMs)) {
+                    SetN2kPGN130306(m, sid, wx.windMs, DegToRad((double)wx.windDir), N2kWind_True_North);
+                    send(m);
+                }
+                if (std::isfinite(wx.pressPa)) { SetN2kPGN130314(m, sid, 0, N2kps_Atmospheric, wx.pressPa); send(m); }
+                if (std::isfinite(wx.tempC)) { SetN2kPGN130316(m, sid, 0, N2kts_OutsideTemperature, CToKelvin(wx.tempC)); send(m); }
+            }
         }
         // GPS propio del tracker al bus (129025/129026/129029), 1 vez/s, solo si no hay otra antena GPS en el bus
         if (Cfg.gpsOut && st.open && now - lastGps >= 1000) {

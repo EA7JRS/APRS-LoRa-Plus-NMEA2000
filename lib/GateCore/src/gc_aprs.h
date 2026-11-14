@@ -25,6 +25,16 @@
 
 namespace GC {
 
+    // Meteo APRS (estación con símbolo '_'): lo que se puede llevar al bus NMEA 2000
+    struct AprsWx {
+        bool    valid = false;
+        int     windDir = -1;          // grados verdaderos de donde viene el viento (-1 sin dato)
+        double  windMs = NAN;          // m/s
+        double  gustMs = NAN;          // m/s
+        double  tempC = NAN;           // °C
+        double  pressPa = NAN;         // presión atmosférica, Pa
+    };
+
     struct AprsPos {
         std::string name;               // indicativo del emisor, o nombre del objeto / ítem
         double  lat = 0, lon = 0;
@@ -37,6 +47,7 @@ namespace GC {
         bool    micE = false;
         bool    compressed = false;
         std::string comment;
+        AprsWx  wx;
     };
 
     namespace AprsDetail {
@@ -74,6 +85,18 @@ namespace GC {
             return v;
         }
 
+        // Meteo APRS tras el símbolo '_': "ddd/sssgGGGtTTT...bBBBBB". Viento en mph, temperatura en °F, presión en décimas de hPa.
+        inline void parseWeather(const std::string& c, AprsWx& wx) {
+            if (c.size() >= 7 && c[3] == '/') {
+                if (c[0] >= '0' && c[0] <= '9') { const int d = atoi(c.substr(0, 3).c_str()); if (d >= 1 && d <= 360) { wx.windDir = d == 360 ? 0 : d; wx.valid = true; } }
+                if (c[4] >= '0' && c[4] <= '9') { wx.windMs = atoi(c.substr(4, 3).c_str()) * 0.44704; wx.valid = true; }   // mph -> m/s
+            }
+            auto field = [&](char key, int n) -> const char* { const size_t p = c.find(key); return (p == std::string::npos || p + 1 + (size_t)n > c.size()) ? nullptr : c.c_str() + p + 1; };
+            if (const char* g = field('g', 3)) { if (g[0] >= '0' && g[0] <= '9') { wx.gustMs = atoi(std::string(g, 3).c_str()) * 0.44704; wx.valid = true; } }
+            if (const char* t = field('t', 3)) { if ((t[0] >= '0' && t[0] <= '9') || t[0] == '-') { wx.tempC = (atoi(std::string(t, 3).c_str()) - 32.0) * 5.0 / 9.0; wx.valid = true; } }
+            if (const char* b = field('b', 5)) { if (b[0] >= '0' && b[0] <= '9') { wx.pressPa = atoi(std::string(b, 5).c_str()) * 10.0; wx.valid = true; } }   // décimas de hPa -> Pa
+        }
+
         // Comentario: "/A=001234" (pies) -> metros
         inline void altitudeFromComment(AprsPos& p) {
             const size_t a = p.comment.find("/A=");
@@ -103,6 +126,7 @@ namespace GC {
                         p.comment = p.comment.substr(7);
                     }
                 }
+                if (p.symCode == '_') parseWeather(p.comment, p.wx);
                 altitudeFromComment(p);
                 return true;
             }

@@ -103,6 +103,7 @@ File `/gw_conf.json` (WebUI > Configuración > JSON):
 | `ais.ignore` | empty | callsigns that are not sent |
 | `gps.on` | false | send the tracker's GPS to the bus (129025/129026/129029) if there is no other GPS antenna |
 | `gps.ownCall` | empty | the tracker's own callsign-SSID (the boat), e.g. `EA7JRS-5` |
+| `gps.wx` | false | send the app's internet weather to the bus (130306 wind, 130314 pressure, 130316 temperature) from the boat's weather beacon, if there are no onboard sensors |
 | `n2k.cs`, `n2k.mhz`, `n2k.int` | 44, 16, -1 | MCP2515 CS (D7), crystal (16 or 8 MHz), interrupt (-1 = none) |
 | `n2k.addr` | 34 | preferred bus address (negotiated; the final one is stored) |
 | `n2k.env`, `n2k.envS` | true, 5 | temperature and humidity to the bus, every how many seconds |

@@ -78,6 +78,13 @@ namespace GC {
             return true;
         }
 
+        // Meteo de internet que la app manda en la baliza del propio barco (viento, temperatura, presión)
+        bool ownWx(AprsWx& wx, uint32_t& at) const {
+            if (!hasOwnWx_) return false;
+            wx = ownWx_; at = ownWxAt_;
+            return true;
+        }
+
         // Bytes KISS tal como llegan (BLE o TCP)
         void onKissBytes(const uint8_t* d, size_t n, uint32_t now) {
             std::vector<uint8_t> f;
@@ -107,6 +114,7 @@ namespace GC {
                 ownAprsLat_ = p.lat; ownAprsLon_ = p.lon;
                 ownAprsCog_ = p.cogDeg; ownAprsSog_ = p.sogKnots;
                 ownAprsAt_ = now; hasOwnAprs_ = true;
+                if (p.wx.valid) { ownWx_ = p.wx; ownWxAt_ = now; hasOwnWx_ = true; }   // meteo de internet de la app
                 setOwn(p.lat, p.lon);                                        // también para el filtro de distancia si no hay GPS del bus
                 return;
             }
@@ -185,6 +193,9 @@ namespace GC {
         double ownAprsLat_ = 0, ownAprsLon_ = 0;
         float ownAprsCog_ = -1, ownAprsSog_ = -1;
         uint32_t ownAprsAt_ = 0;
+        bool hasOwnWx_ = false;
+        AprsWx ownWx_;
+        uint32_t ownWxAt_ = 0;
 
         static bool sameCall(const std::string& a, const std::string& b) {
             if (a.size() != b.size()) return false;

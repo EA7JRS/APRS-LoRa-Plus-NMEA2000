@@ -44,6 +44,7 @@ struct GwConfig {
 
     // GPS propio: emitir la posición del tracker al bus (129025/129026/129029) cuando no hay otra antena GPS
     bool        gpsOut = false;                   // apagado por defecto (si el barco ya tiene GPS en el bus, dejarlo así)
+    bool        wxOut = false;                     // emitir al bus el tiempo de internet de la app (viento/presión/temperatura) si no hay sensores
     std::string ownCall = "";                    // indicativo-SSID del propio tracker (el barco), p. ej. EA7JRS-5
 
     // NMEA 2000 (MCP2515)

@@ -102,6 +102,7 @@ Fichero `/gw_conf.json` (WebUI > Configuración > JSON):
 | `ais.ignore` | vacío | indicativos que no se envían |
 | `gps.on` | false | emitir el GPS del tracker al bus (129025/129026/129029) si no hay otra antena GPS |
 | `gps.ownCall` | vacío | indicativo-SSID del propio tracker (el barco), p. ej. `EA7JRS-5` |
+| `gps.wx` | false | emitir al bus el tiempo de internet de la app (130306 viento, 130314 presión, 130316 temperatura) de la baliza meteo del barco, si no hay sensores a bordo |
 | `n2k.cs`, `n2k.mhz`, `n2k.int` | 44, 16, -1 | CS del MCP2515 (D7), cristal (16 u 8 MHz), interrupción (-1 = sin ella) |
 | `n2k.addr` | 34 | dirección preferida en el bus (se negocia y se guarda la que queda) |
 | `n2k.env`, `n2k.envS` | true, 5 | temperatura y humedad al bus, cada cuántos segundos |

@@ -66,6 +66,8 @@ static void testAprs() {
     CHECK(aprsPosition("N0CALL", "APRS", "!49  .  N/072  .  W-", p) && near(p.lat, 49.0) && near(p.lon, -72.0));      // ambigüedad
     CHECK(!aprsPosition("N0CALL", "APRS", "!4903.50X/07201.75W-", p));
     CHECK(aprsPosition("WX", "APRS", "!4903.50N/07201.75W_220/004g005t077", p) && p.cogDeg < 0);                   // viento, no rumbo
+    CHECK(p.wx.valid && p.wx.windDir == 220 && near(p.wx.windMs, 4 * 0.44704) && near(p.wx.gustMs, 5 * 0.44704) && near(p.wx.tempC, (77 - 32) * 5.0 / 9.0));
+    CHECK(aprsPosition("WX", "APRS", "!4903.50N/07201.75W_180/010g015t068r000p000P000h55b10132", p) && near(p.wx.pressPa, 101320) && p.wx.windDir == 180);
     // Comprimidas (ejemplos de la especificación)
     CHECK(aprsPosition("N0CALL", "APRS", "=/5L!!<*e7>7P[", p) && p.compressed && near(p.lat, 49.5, 1e-4) && near(p.lon, -72.75, 1e-4));
     CHECK(p.cogDeg == 88 && near(p.sogKnots, 36.2, 0.05) && p.symCode == '>');
@@ -148,6 +150,10 @@ static void testGate() {
     CHECK(g3.hasOwn() && g3.table().find("EA7JRS-5") < 0 && !g3.poll(1000, e));   // no es un blanco
     send3("EB7XX-9", "!3725.00N/00559.00W>");                                     // otra estación sí es blanco
     CHECK(g3.table().find("EB7XX-9") >= 0);
+    // meteo de internet de la app en la baliza propia -> ownWx
+    send3("EA7JRS-5", "!3725.00N/00559.00W_200/012g020t059b10110");
+    AprsWx wx; uint32_t wat;
+    CHECK(g3.ownWx(wx, wat) && wx.windDir == 200 && near(wx.windMs, 12 * 0.44704) && near(wx.tempC, (59 - 32) * 5.0 / 9.0) && near(wx.pressPa, 101100));
 }
 
 static void testAnemo() {

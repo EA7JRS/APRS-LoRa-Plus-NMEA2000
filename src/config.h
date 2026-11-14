@@ -18,7 +18,7 @@
 // D6 = GPIO43 (TX), D7 = GPIO44 (RX), D8 = GPIO7 (SCK), D9 = GPIO8 (MISO), D10 = GPIO9 (MOSI)
 struct GwConfig {
     std::string name = "APRS-N2K";              // red (mDNS), punto de acceso, Bluetooth y WebUI
-    std::string pin = "";                        // clave de la WebUI para cambiar la configuración (vacía = sin clave)
+    std::string pin = "123456";                  // clave de la WebUI para cambiar la configuración (igual que el PIN de control del ecosistema APRS LoRa+; vacía = sin clave)
 
     // WiFi: 0 apagada, 1 cliente (con punto de acceso de rescate), 2 punto de acceso
     int         wifiMode = 2;

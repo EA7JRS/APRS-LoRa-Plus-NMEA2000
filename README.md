@@ -16,6 +16,18 @@ Copyright (C) 2026 Manuel - EA7JRS · GPL-3.0-or-later · versión **5.4.5** (la
 - **WebUI**: estado del enlace y del bus, blancos, ambiente, últimos paquetes, configuración y actualización del firmware.
 - **Solo escucha**: no transmite por radio.
 
+## Red, WebUI y claves
+
+La pasarela trae WiFi y WebUI propios (puerto 80: `/`, `/api/status`, `/api/config`, `/update` para OTA).
+
+| | Por defecto | Notas |
+|---|---|---|
+| Red WiFi propia (AP) | **`APRS-N2K`** / clave **`aprsn2000`** | `wifi.mode` 2 = punto de acceso; abre `http://192.168.4.1`. La clave del AP necesita ≥ 8 caracteres. |
+| WiFi cliente | — | `wifi.mode` 1: se une a la red del barco (`wifi.ssid`/`wifi.pass`); si no entra en 30 s levanta el AP de rescate. |
+| Clave de la WebUI | **`123456`** | El mismo PIN de control del ecosistema APRS LoRa+ (tracker, plotter, app). HTTP Basic, usuario `admin`; solo se pide para **cambiar** la configuración o actualizar. Déjala vacía para no pedir clave; **cámbiala** si la pasarela es accesible desde la red del barco. |
+
+Nombre común `APRS-N2K` para la red/AP, mDNS (`APRS-N2K.local`) y Bluetooth. Detalle en el [manual](docs/MANUAL_ES.md#4-primer-arranque).
+
 ## Documentación
 
 - **Manual de usuario**: [español](docs/MANUAL_ES.md) · [English](docs/MANUAL_EN.md)

@@ -28,9 +28,9 @@ Si no entra en modo de carga: mantén pulsado **B** (BOOT) del XIAO, pulsa **R**
 
 ## 4. Primer arranque
 
-La pasarela crea la red WiFi **APRS-N2K** (clave `aprsn2000`). Conéctate y abre `http://192.168.4.1`.
+La pasarela crea la red WiFi **APRS-N2K** (clave `aprsn2000`, mínimo 8 caracteres). Conéctate y abre `http://192.168.4.1`.
 
-- **Clave de la WebUI**: en la configuración JSON, `pin`. Con ella, para guardar cambios o actualizar el firmware piden usuario `admin` y esa clave.
+- **Clave de la WebUI**: en la configuración JSON, `pin`. De fábrica es **`123456`** (el mismo PIN de control del resto del ecosistema APRS LoRa+: tracker, plotter, app). Para guardar cambios o actualizar el firmware piden usuario `admin` y esa clave. Déjala **vacía** para no pedir clave. **Cámbiala** si la pasarela es accesible desde la red del barco.
 - **WiFi cliente**: *WiFi = Cliente de otra red*, con la red y la clave del barco. Si en 30 s no entra, vuelve a crear su red (rescate).
 
 ## 5. Conectar el tracker
@@ -83,7 +83,7 @@ Fichero `/gw_conf.json` (WebUI > Configuración > JSON):
 | Clave | Por defecto | |
 |---|---|---|
 | `name` | `APRS-N2K` | red WiFi propia, mDNS (`APRS-N2K.local`) y Bluetooth |
-| `pin` | vacío | clave de la WebUI (usuario `admin`) |
+| `pin` | `123456` | clave de la WebUI (usuario `admin`); vacía = sin clave |
 | `wifi.mode` | 2 | 0 apagada, 1 cliente (con rescate), 2 punto de acceso |
 | `wifi.ssid`, `wifi.pass` | — | red del barco (modo 1) |
 | `wifi.apPass` | `aprsn2000` | clave de la red propia (mínimo 8) |

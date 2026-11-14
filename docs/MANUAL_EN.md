@@ -28,9 +28,9 @@ If it will not enter download mode: hold **B** (BOOT) on the XIAO, press **R** (
 
 ## 4. First start
 
-The gateway creates the WiFi network **APRS-N2K** (password `aprsn2000`). Join it and open `http://192.168.4.1`.
+The gateway creates the WiFi network **APRS-N2K** (password `aprsn2000`, at least 8 characters). Join it and open `http://192.168.4.1`.
 
-- **WebUI password**: in the JSON configuration, `pin`. When set, saving changes or updating the firmware asks for user `admin` and that password.
+- **WebUI password**: in the JSON configuration, `pin`. The factory default is **`123456`** (the same control PIN used across the APRS LoRa+ ecosystem: tracker, plotter, app). Saving changes or updating the firmware then asks for user `admin` and that password. Leave it **empty** for no password. **Change it** if the gateway is reachable from the boat's network.
 - **WiFi client**: *WiFi = Cliente de otra red*, with the boat's network and password. If it cannot join within 30 s, it brings up its own network again (rescue).
 
 ## 5. Connecting the tracker
@@ -84,7 +84,7 @@ File `/gw_conf.json` (WebUI > Configuración > JSON):
 | Key | Default | |
 |---|---|---|
 | `name` | `APRS-N2K` | own WiFi network, mDNS (`APRS-N2K.local`) and Bluetooth |
-| `pin` | empty | WebUI password (user `admin`) |
+| `pin` | `123456` | WebUI password (user `admin`); empty = no password |
 | `wifi.mode` | 2 | 0 off, 1 client (with rescue), 2 access point |
 | `wifi.ssid`, `wifi.pass` | — | boat network (mode 1) |
 | `wifi.apPass` | `aprsn2000` | own network password (at least 8) |

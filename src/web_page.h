@@ -51,6 +51,7 @@ pre{white-space:pre-wrap;word-break:break-all;font-size:12px;margin:0;max-height
 <label>Repetir posición (s)<input id="f_ref" type="number"></label>
 <label>Olvidar tras (min)<input id="f_ttl" type="number"></label>
 <label>Distancia máx. (km, 0 = todas)<input id="f_km" type="number" step="0.1"></label>
+<label>Estaciones APRS en tierra<select id="f_aton"><option value="1">Ayuda a la navegación (sin alarma)</option><option value="0">Buque AIS (clase B)</option></select></label>
 <label>No enviar (indicativos)<input id="f_ign" placeholder="EA7JRS-5"></label>
 <label>Cristal del MCP2515<select id="f_mhz"><option value="16">16 MHz</option><option value="8">8 MHz</option></select></label>
 <label>Ambiente al bus<select id="f_env"><option value="1">Sí</option><option value="0">No</option></select></label>
@@ -66,7 +67,7 @@ pre{white-space:pre-wrap;word-break:break-all;font-size:12px;margin:0;max-height
 <div class="c w" id="about"><h3>Acerca de</h3>
 <p>APRS LoRa+ NMEA 2000 <span id="ver2"></span> · © 2026 Manuel - EA7JRS</p>
 <p><b>APRS LoRa+</b> &mdash; EA7JRS: <a href="https://ea7jrs.github.io/APRS-LoRa-Plus/" target="_blank" rel="noopener">ea7jrs.github.io/APRS-LoRa-Plus</a> (instalador y proyecto: tracker, app Android, rotor, gateway, display y náutica).</p>
-<p class="mut">Las estaciones APRS que oye el tracker salen en el plotter como blancos AIS (clase B: PGN 129039, 129809 y 129810; clase A con la etiqueta AIS del perfil náutico: 129038 y 129794), con el mismo MMSI que el tracker en su salida NMEA 0183. Temperatura y humedad: 130311, 130312 y 130313. Viento del anemómetro: 130306. No son blancos AIS reales: no sirven para evitar colisiones.</p>
+<p class="mut">Las estaciones APRS que oye el tracker salen en el plotter. Por defecto, las de radioaficionado (sin perfil «AIS:») van como <b>ayuda a la navegación virtual</b> (129041): el plotter las muestra como baliza, no como buque, y <b>no disparan la alarma de abordaje</b> (no son barcos reales). Los barcos con perfil «AIS:» (MMSI real) van como buque AIS (clase B: 129039, 129809 y 129810; clase A: 129038 y 129794), con alarma de abordaje normal. Se puede cambiar en Configuración. Temperatura y humedad: 130311, 130312 y 130313. Viento del anemómetro: 130306.</p>
 <p class="mut">Librería NMEA2000 y NMEA2000_mcp (Timo Lappalainen, MIT), CAN_BUS_Shield (Seeed Studio, MIT), NimBLE-Arduino, ArduinoJson. Licencia GPL-3.0-or-later. <a href="https://github.com/EA7JRS">github.com/EA7JRS</a></p>
 <p><a class="btn-donate" href="https://paypal.me/ea7jrs" target="_blank" rel="noopener">♥ Donar (PayPal.me/ea7jrs)</a></p>
 </div>
@@ -97,12 +98,12 @@ $('rc').textContent=s.recent.slice().reverse().join('\n');
 async function loadCfg(){cfg=await (await fetch('/api/config')).json();$('raw').value=JSON.stringify(cfg,null,2);
 const t=cfg.tracker,a=cfg.ais,k=cfg.n2k,w=cfg.wifi;$('f_src').value=t.src;$('f_host').value=t.tcpHost;$('f_port').value=t.tcpPort;$('f_ble').value=t.bleName;
 $('f_wm').value=w.mode;$('f_ssid').value=w.ssid;$('f_pass').value=w.pass;$('f_ap').value=w.apPass;$('f_mid').value=a.mid;$('f_ref').value=a.refreshS;$('f_ttl').value=a.ttlMin;
-$('f_km').value=a.maxKm;$('f_ign').value=a.ignore;$('f_mhz').value=k.mhz;$('f_env').value=k.env?1:0;$('f_bat').value=cfg.log.battery?1:0;$('f_an').value=cfg.anemo.on?1:0;$('f_kmh').value=cfg.anemo.kmhPerHz;$('f_wref').value=cfg.anemo.ref;}
+$('f_km').value=a.maxKm;$('f_aton').value=a.aton?1:0;$('f_ign').value=a.ignore;$('f_mhz').value=k.mhz;$('f_env').value=k.env?1:0;$('f_bat').value=cfg.log.battery?1:0;$('f_an').value=cfg.anemo.on?1:0;$('f_kmh').value=cfg.anemo.kmhPerHz;$('f_wref').value=cfg.anemo.ref;}
 async function post(u,b){const r=await fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:b});const j=await r.json().catch(()=>({}));
 $('msg').textContent=j.ok?'Guardado; reiniciando...':('Error: '+(j.err||r.status));if(j.ok)setTimeout(()=>location.reload(),6000);}
 function saveForm(){const c={tracker:{src:$('f_src').value,tcpHost:$('f_host').value.trim(),tcpPort:+$('f_port').value,bleName:$('f_ble').value.trim()},
 wifi:{mode:+$('f_wm').value,ssid:$('f_ssid').value,pass:$('f_pass').value,apPass:$('f_ap').value},
-ais:{mid:+$('f_mid').value,refreshS:+$('f_ref').value,ttlMin:+$('f_ttl').value,maxKm:+$('f_km').value,ignore:$('f_ign').value.trim()},
+ais:{mid:+$('f_mid').value,refreshS:+$('f_ref').value,ttlMin:+$('f_ttl').value,maxKm:+$('f_km').value,aton:$('f_aton').value=='1',ignore:$('f_ign').value.trim()},
 n2k:{mhz:+$('f_mhz').value,env:$('f_env').value=='1'},log:{battery:$('f_bat').value=='1'},
 anemo:{on:$('f_an').value=='1',kmhPerHz:+$('f_kmh').value,ref:$('f_wref').value}};post('/api/config',JSON.stringify(c));}
 function saveRaw(){try{JSON.parse($('raw').value)}catch(e){$('msg').textContent='JSON no válido';return}post('/api/config',$('raw').value);}

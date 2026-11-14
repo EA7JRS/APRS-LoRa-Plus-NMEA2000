@@ -28,7 +28,7 @@ namespace Config {
         t["src"] = c.src; t["bleName"] = c.bleName; t["bleAddr"] = c.bleAddr; t["tcpHost"] = c.tcpHost; t["tcpPort"] = c.tcpPort;
         JsonObject a = o["ais"].to<JsonObject>();
         a["mid"] = c.mid; a["refreshS"] = c.refreshS; a["ttlMin"] = c.ttlMin; a["staticMin"] = c.staticMin; a["maxKm"] = c.maxKm;
-        a["objects"] = c.objects; a["ignore"] = c.ignore;
+        a["objects"] = c.objects; a["aton"] = c.aton; a["ignore"] = c.ignore;
         JsonObject n = o["n2k"].to<JsonObject>();
         n["cs"] = c.canCs; n["mhz"] = c.canMHz; n["int"] = c.canInt; n["addr"] = c.n2kAddr; n["env"] = c.sendEnv; n["envS"] = c.envS;
         JsonObject an = o["anemo"].to<JsonObject>();
@@ -46,7 +46,7 @@ namespace Config {
         JsonObjectConst a = in["ais"];
         get(a, "mid", n.mid); get(a, "refreshS", n.refreshS); get(a, "ttlMin", n.ttlMin); get(a, "staticMin", n.staticMin);
         if (a["maxKm"].is<double>()) n.maxKm = a["maxKm"].as<double>();
-        get(a, "objects", n.objects); getS(a, "ignore", n.ignore);
+        get(a, "objects", n.objects); get(a, "aton", n.aton); getS(a, "ignore", n.ignore);
         JsonObjectConst k = in["n2k"];
         get(k, "cs", n.canCs); get(k, "mhz", n.canMHz); get(k, "int", n.canInt); get(k, "addr", n.n2kAddr); get(k, "env", n.sendEnv); get(k, "envS", n.envS);
         JsonObjectConst an = in["anemo"];

@@ -39,6 +39,7 @@ struct GwConfig {
     int         staticMin = 6;
     double      maxKm = 0;
     bool        objects = true;
+    bool        aton = true;                      // estaciones APRS sin perfil AIS: real -> ayuda a la navegación virtual (129041), sin alarma de abordaje en el plotter
     std::string ignore = "";                     // indicativos que no se envían (el del propio barco), separados por comas
 
     // NMEA 2000 (MCP2515)

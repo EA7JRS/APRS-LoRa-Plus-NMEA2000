@@ -71,8 +71,9 @@ El tracker admite **una sola conexión Bluetooth**: si la app del móvil está c
 
 ## 8. Alarmas de colisión (CPA / TCPA)
 
-Las estaciones APRS cercanas (en el puerto, en la costa) pueden disparar las **alarmas de colisión AIS** del plotter. Para evitarlo:
+Las estaciones APRS son de radioaficionado, muchas en tierra: no son barcos y **no deben disparar la alarma de abordaje** del plotter. Por eso:
 
+- **Estaciones APRS en tierra** (`ais.aton`, por defecto `Ayuda a la navegación`): las estaciones sin perfil «AIS:» salen como **ayuda a la navegación virtual** (PGN 129041). El plotter las muestra como baliza, no como buque, así que **no entran en la alarma de colisión**. Los barcos con perfil «AIS:» (MMSI real) siguen como buque AIS, con alarma normal. Si prefieres verlas todas como buque (clase B), pon `Buque AIS (clase B)`.
 - **Distancia máxima** (`ais.maxKm`): solo se envían las estaciones a menos de esa distancia del barco, si el bus da la posición del barco.
 - **No enviar** (`ais.ignore`): indicativos separados por comas, por ejemplo el del propio tracker si el barco ya tiene AIS.
 - Ajusta en el plotter la distancia y el tiempo de la alarma AIS, o apágala para los blancos "perdidos".
@@ -97,6 +98,7 @@ Fichero `/gw_conf.json` (WebUI > Configuración > JSON):
 | `ais.staticMin` | 6 | repetición del nombre y del tipo |
 | `ais.maxKm` | 0 | distancia máxima (0 = todas) |
 | `ais.objects` | true | objetos e ítems APRS también |
+| `ais.aton` | true | estaciones sin perfil «AIS:» como ayuda a la navegación virtual (129041), sin alarma de abordaje; false = buque clase B |
 | `ais.ignore` | vacío | indicativos que no se envían |
 | `n2k.cs`, `n2k.mhz`, `n2k.int` | 44, 16, -1 | CS del MCP2515 (D7), cristal (16 u 8 MHz), interrupción (-1 = sin ella) |
 | `n2k.addr` | 34 | dirección preferida en el bus (se negocia y se guarda la que queda) |

@@ -15,6 +15,7 @@
 #include <N2kMessages.h>
 #pragma GCC diagnostic pop
 #include <Preferences.h>
+#include <cstring>
 
 namespace N2k {
 
@@ -116,6 +117,33 @@ namespace N2k {
         if (dims) AIS_Vessel::splitDimensions(s.info.length, s.info.beam, bow, stern, port, stbd);
         const double len = dims ? s.info.length : N2kDoubleNA, beam = dims && s.info.beam ? s.info.beam : N2kDoubleNA;
         const double refStbd = dims ? stbd : N2kDoubleNA, refBow = dims ? bow : N2kDoubleNA;
+        // Estación APRS genérica (sin perfil "AIS:" náutico): ayuda a la navegación virtual (129041, mensaje 21).
+        // El plotter la muestra como baliza, no como buque, así que no dispara la alarma de abordaje (no es un barco real).
+        if (Cfg.aton && !s.hasInfo) {
+            tN2kAISAtoNReportData a;
+            a.MessageID = 21;
+            a.Repeat = N2kaisr_Initial;
+            a.UserID = s.mmsi;
+            a.Longitude = s.lon;
+            a.Latitude = s.lat;
+            a.Accuracy = false;
+            a.RAIM = false;
+            a.Seconds = 60;
+            a.Length = N2kDoubleNA;
+            a.Beam = N2kDoubleNA;
+            a.PositionReferenceStarboard = N2kDoubleNA;
+            a.PositionReferenceTrueNorth = N2kDoubleNA;
+            a.AtoNType = N2kAISAtoN_not_specified;
+            a.OffPositionIndicator = false;
+            a.VirtualAtoNFlag = true;
+            a.AssignedModeFlag = false;
+            a.GNSSType = N2kGNSSt_GPS;
+            strncpy(a.AtoNName, name.c_str(), sizeof(a.AtoNName) - 1);
+            a.AtoNName[sizeof(a.AtoNName) - 1] = 0;
+            SetN2kAISAtoNReport(m, a);
+            send(m);
+            return;
+        }
         if (GC::Gate::classA(s)) {
             if (e.kind == GC::GateEvent::POSITION) {
                 SetN2kPGN129038(m, 1, N2kaisr_Initial, s.mmsi, s.lat, s.lon, false, false, 60, cog, sog,

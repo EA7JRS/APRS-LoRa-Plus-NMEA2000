@@ -8,7 +8,7 @@
 #include <ArduinoJson.h>
 #include <string>
 
-#define GW_VERSION "5.4.4"
+#define GW_VERSION "5.4.5"
 
 #ifndef GW_BOARD
     #define GW_BOARD "xiao_esp32s3_can"

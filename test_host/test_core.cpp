@@ -117,6 +117,10 @@ static void testGate() {
     send("EA1BOAT-5", "!3726.00N/00600.00Ws AIS:C224123456,12x4x1.8,37,SEA BREEZE;");
     CHECK(g.poll(t, e) && e.kind == GateEvent::STATIC && g.table().at(e.index).mmsi == 224123456 && Gate::aisName(g.table().at(e.index)) == "SEA BREEZE");
     CHECK(g.poll(t, e) && e.kind == GateEvent::POSITION);
+    send("EA2SAIL-5", "!3727.00N/00601.00WY AIS B-CS: AZUL, MMSI 224654321, call EBXY, 10x3 m, draft 1.5 m, sailing;");   // etiqueta legible con distintivo maritimo
+    CHECK(g.poll(t, e) && e.kind == GateEvent::STATIC && g.table().at(e.index).mmsi == 224654321 && Gate::aisName(g.table().at(e.index)) == "AZUL");
+    CHECK(std::string(g.table().at(e.index).info.call) == "EBXY");
+    CHECK(g.poll(t, e) && e.kind == GateEvent::POSITION);
     // objeto borrado
     send("EA7JRS", ";BUOY1    *092345z3720.00N/00610.00WB");
     CHECK(g.poll(t, e) && e.kind == GateEvent::STATIC); CHECK(g.poll(t, e) && e.kind == GateEvent::POSITION);

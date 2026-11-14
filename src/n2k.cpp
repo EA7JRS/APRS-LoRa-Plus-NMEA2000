@@ -109,6 +109,7 @@ namespace N2k {
         const std::string name = GC::Gate::aisName(s);
         std::string call = s.callsign;
         if (s.hasInfo) { char b[12]; AIS_Vessel::baseCallsign(s.callsign, b, sizeof b); call = b; }
+        if (s.hasInfo && s.info.call[0]) call = s.info.call;              // distintivo maritimo del MMSI
         if (call.size() > 7) call.resize(7);
         uint16_t bow = 0, stern = 0; uint8_t port = 0, stbd = 0;
         const bool dims = s.hasInfo && s.info.length > 0;

@@ -101,6 +101,8 @@ File `/gw_conf.json` (WebUI > Configuración > JSON):
 | `ais.objects` | true | APRS objects and items too |
 | `ais.aton` | true | stations without an "AIS:" profile as a virtual aid to navigation (129041), no collision alarm; false = class B vessel |
 | `ais.ignore` | empty | callsigns that are not sent |
+| `gps.on` | false | send the tracker's GPS to the bus (129025/129026/129029) if there is no other GPS antenna |
+| `gps.ownCall` | empty | the tracker's own callsign-SSID (the boat), e.g. `EA7JRS-5` |
 | `n2k.cs`, `n2k.mhz`, `n2k.int` | 44, 16, -1 | MCP2515 CS (D7), crystal (16 or 8 MHz), interrupt (-1 = none) |
 | `n2k.addr` | 34 | preferred bus address (negotiated; the final one is stored) |
 | `n2k.env`, `n2k.envS` | true, 5 | temperature and humidity to the bus, every how many seconds |

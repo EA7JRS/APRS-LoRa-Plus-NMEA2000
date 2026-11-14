@@ -16,13 +16,14 @@
 #pragma GCC diagnostic pop
 #include <Preferences.h>
 #include <cstring>
+#include <ctime>
 
 namespace N2k {
 
     static tNMEA2000_mcp* bus = nullptr;
     static Status st;
     static Preferences prefs;
-    static uint32_t lastEnv = 0, lastEvent = 0, lastWind = 0;
+    static uint32_t lastEnv = 0, lastEvent = 0, lastWind = 0, lastGps = 0;
     static uint8_t sid = 0;
     static uint8_t seen[32];                     // fuentes oídas (bit por dirección)
 
@@ -176,7 +177,9 @@ namespace N2k {
         sid = (uint8_t)((sid + 1) % 253);
         SetN2kPGN130311(m, sid, N2kts_OutsideTemperature, CToKelvin(d.tempC), N2khs_OutsideHumidity, d.humPct, N2kDoubleNA);
         send(m);
-        SetN2kPGN130312(m, sid, 0, N2kts_OutsideTemperature, CToKelvin(d.tempC));
+        SetN2kPGN130312(m, sid, 0, N2kts_OutsideTemperature, CToKelvin(d.tempC));   // temperatura (obsoleto pero compatible)
+        send(m);
+        SetN2kPGN130316(m, sid, 0, N2kts_OutsideTemperature, CToKelvin(d.tempC));   // temperatura de rango ampliado (el que prefiere el Garmin)
         send(m);
         SetN2kPGN130313(m, sid, 0, N2khs_OutsideHumidity, d.humPct);
         send(m);
@@ -209,6 +212,25 @@ namespace N2k {
         if (Cfg.sendEnv && st.open && now - lastEnv >= (uint32_t)Cfg.envS * 1000) {
             lastEnv = now;
             sendEnvironment();
+        }
+        // GPS propio del tracker al bus (129025/129026/129029), 1 vez/s, solo si no hay otra antena GPS en el bus
+        if (Cfg.gpsOut && st.open && now - lastGps >= 1000) {
+            double lat, lon; float cog, sog; uint32_t at;
+            const bool busGps = st.hasOwn && now - st.ownAt < 10000;
+            if (!busGps && gate.ownAprs(lat, lon, cog, sog, at) && now - at < 60000) {
+                lastGps = now;
+                sid = (uint8_t)((sid + 1) % 253);
+                tN2kMsg m;
+                SetN2kPGN129025(m, lat, lon);
+                send(m);
+                SetN2kCOGSOGRapid(m, sid, N2khr_true, cog >= 0 ? DegToRad(cog) : N2kDoubleNA, sog >= 0 ? KnotsToms(sog) : N2kDoubleNA);
+                send(m);
+                const time_t t = time(nullptr);
+                const bool haveTime = t > 1600000000;
+                SetN2kPGN129029(m, sid, haveTime ? (uint16_t)(t / 86400) : N2kUInt16NA, haveTime ? (double)(t % 86400) : N2kDoubleNA,
+                                lat, lon, N2kDoubleNA, N2kGNSSt_GPS, N2kGNSSm_GNSSfix, 10, 1.0, 1.0, N2kDoubleNA);
+                send(m);
+            }
         }
         int n = 0;
         for (int i = 0; i < 32; i++) n += __builtin_popcount(seen[i]);

@@ -13,7 +13,8 @@ Copyright (C) 2026 Manuel - EA7JRS · GPL-3.0-or-later · versión **5.4.5** (la
 ```
 
 - **Blancos AIS**: posiciones APRS sin comprimir, comprimidas y Mic-E, objetos e ítems, tráfico de terceros; rumbo, velocidad y altitud. MMSI ficticio `8 MID nnnnn` (el mismo que el tracker en NMEA 0183) o el real con la etiqueta `AIS:` del perfil náutico. Las estaciones de radioaficionado (sin perfil `AIS:`) salen por defecto como **ayuda a la navegación virtual** (129041), que el plotter no vigila con la alarma de abordaje; los barcos con perfil `AIS:` van como buque clase B (129039, 129809, 129810) o A (129038, 129794). Configurable (`ais.aton`).
-- **Ambiente**: 130311, 130312, 130313; anemómetro de cazoletas (opcional, D3): 130306.
+- **Ambiente**: 130311, 130313 y 130316 (temperatura de rango ampliado, la que prefiere el Garmin) + 130312; anemómetro de cazoletas (opcional, D3): 130306.
+- **GPS del tracker** (opcional, `gps.on`): si el barco no tiene otra antena GPS en el bus, emite la posición del tracker como 129025 / 129026 / 129029 (posición, COG/SOG, GNSS con hora). El Garmin la usa para posición, rumbo, velocidad, hora y, con el instrumento de viento, el viento real.
 - **Del bus**: posición del barco (filtro de distancia) y hora (al reloj del HAT).
 - **WebUI**: estado del enlace y del bus, blancos, ambiente, últimos paquetes, configuración y actualización del firmware.
 - **Solo escucha**: no transmite por radio.

@@ -32,6 +32,7 @@ static void applyGateOptions() {
     o.maxKm = Cfg.maxKm;
     o.objects = Cfg.objects;
     o.ignore = Cfg.ignore;
+    o.ownCall = Cfg.gpsOut ? Cfg.ownCall : std::string();   // solo capturar la posición propia si vamos a emitir el GPS
     gate.configure(o);
 }
 

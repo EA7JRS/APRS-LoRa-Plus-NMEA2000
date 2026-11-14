@@ -46,6 +46,7 @@ namespace GC {
         double      maxKm = 0;                  // > 0: solo estaciones a menos de esta distancia del barco (si se sabe)
         bool        objects = true;             // objetos e ítems APRS también como blancos
         std::string ignore;                     // indicativos separados por comas que no se envían (el propio barco)
+        std::string ownCall;                    // indicativo-SSID del propio tracker (el barco): su posición se guarda como GPS propio, no como blanco
     };
 
     struct GateEvent {
@@ -68,6 +69,14 @@ namespace GC {
         bool hasOwn() const { return hasOwn_; }
         double ownLat() const { return ownLat_; }
         double ownLon() const { return ownLon_; }
+
+        // GPS propio desde la baliza APRS del tracker (opt_.ownCall), para emitirlo al bus si no hay otra antena GPS.
+        // cog en grados y sog en nudos (-1 = sin dato); at = millis de la última baliza propia.
+        bool ownAprs(double& lat, double& lon, float& cog, float& sog, uint32_t& at) const {
+            if (!hasOwnAprs_) return false;
+            lat = ownAprsLat_; lon = ownAprsLon_; cog = ownAprsCog_; sog = ownAprsSog_; at = ownAprsAt_;
+            return true;
+        }
 
         // Bytes KISS tal como llegan (BLE o TCP)
         void onKissBytes(const uint8_t* d, size_t n, uint32_t now) {
@@ -94,6 +103,13 @@ namespace GC {
             if (!aprsPosition(a.src, a.dst, a.info, p)) return;
             if (p.object && !opt_.objects) return;
             if (p.lat == 0 && p.lon == 0) return;
+            if (!opt_.ownCall.empty() && sameCall(p.name, opt_.ownCall)) {   // baliza del propio tracker: es el barco, no un blanco
+                ownAprsLat_ = p.lat; ownAprsLon_ = p.lon;
+                ownAprsCog_ = p.cogDeg; ownAprsSog_ = p.sogKnots;
+                ownAprsAt_ = now; hasOwnAprs_ = true;
+                setOwn(p.lat, p.lon);                                        // también para el filtro de distancia si no hay GPS del bus
+                return;
+            }
             if (ignored(p.name)) { stats_.ignored++; return; }
             const int known = table_.find(p.name.c_str());
             if (p.killed) {
@@ -165,6 +181,17 @@ namespace GC {
         Stats stats_;
         bool hasOwn_ = false;
         double ownLat_ = 0, ownLon_ = 0;
+        bool hasOwnAprs_ = false;
+        double ownAprsLat_ = 0, ownAprsLon_ = 0;
+        float ownAprsCog_ = -1, ownAprsSog_ = -1;
+        uint32_t ownAprsAt_ = 0;
+
+        static bool sameCall(const std::string& a, const std::string& b) {
+            if (a.size() != b.size()) return false;
+            for (size_t i = 0; i < a.size(); i++)
+                if (toupper((unsigned char)a[i]) != toupper((unsigned char)b[i])) return false;
+            return true;
+        }
 
         void remember(const std::string& t) {
             recent_.push_back(t.size() > 200 ? t.substr(0, 200) : t);

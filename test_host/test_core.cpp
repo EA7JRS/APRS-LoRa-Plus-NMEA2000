@@ -139,6 +139,15 @@ static void testGate() {
     t += 1800001; while (g.poll(t, e)) {}
     CHECK(g.active(t) == 0);
     CHECK(g.recent().size() <= 20 && !g.recent().empty());
+    // GPS propio del tracker: su baliza se guarda como posición propia, no como blanco
+    Gate g3; GateOptions o3; o3.ownCall = "EA7JRS-5"; g3.configure(o3);
+    auto send3 = [&](const std::string& src, const std::string& info) { const auto k = kiss(ax25(src, "APLRT1", {}, info)); g3.onKissBytes(k.data(), k.size(), 1000); };
+    send3("EA7JRS-5", "!3725.00N/00559.00W>090/010");
+    double lat, lon; float cog, sog; uint32_t at;
+    CHECK(g3.ownAprs(lat, lon, cog, sog, at) && near(lat, 37 + 25.0 / 60) && near(lon, -(5 + 59.0 / 60)) && cog == 90 && sog == 10);
+    CHECK(g3.hasOwn() && g3.table().find("EA7JRS-5") < 0 && !g3.poll(1000, e));   // no es un blanco
+    send3("EB7XX-9", "!3725.00N/00559.00W>");                                     // otra estación sí es blanco
+    CHECK(g3.table().find("EB7XX-9") >= 0);
 }
 
 static void testAnemo() {

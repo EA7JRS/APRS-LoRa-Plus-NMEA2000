@@ -42,6 +42,10 @@ struct GwConfig {
     bool        aton = true;                      // estaciones APRS sin perfil AIS: real -> ayuda a la navegación virtual (129041), sin alarma de abordaje en el plotter
     std::string ignore = "";                     // indicativos que no se envían (el del propio barco), separados por comas
 
+    // GPS propio: emitir la posición del tracker al bus (129025/129026/129029) cuando no hay otra antena GPS
+    bool        gpsOut = false;                   // apagado por defecto (si el barco ya tiene GPS en el bus, dejarlo así)
+    std::string ownCall = "";                    // indicativo-SSID del propio tracker (el barco), p. ej. EA7JRS-5
+
     // NMEA 2000 (MCP2515)
     int         canCs = 44;                      // D7
     int         canMHz = 16;                     // cristal del MCP2515: 16 u 8

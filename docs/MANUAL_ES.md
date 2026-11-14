@@ -100,6 +100,8 @@ Fichero `/gw_conf.json` (WebUI > Configuración > JSON):
 | `ais.objects` | true | objetos e ítems APRS también |
 | `ais.aton` | true | estaciones sin perfil «AIS:» como ayuda a la navegación virtual (129041), sin alarma de abordaje; false = buque clase B |
 | `ais.ignore` | vacío | indicativos que no se envían |
+| `gps.on` | false | emitir el GPS del tracker al bus (129025/129026/129029) si no hay otra antena GPS |
+| `gps.ownCall` | vacío | indicativo-SSID del propio tracker (el barco), p. ej. `EA7JRS-5` |
 | `n2k.cs`, `n2k.mhz`, `n2k.int` | 44, 16, -1 | CS del MCP2515 (D7), cristal (16 u 8 MHz), interrupción (-1 = sin ella) |
 | `n2k.addr` | 34 | dirección preferida en el bus (se negocia y se guarda la que queda) |
 | `n2k.env`, `n2k.envS` | true, 5 | temperatura y humedad al bus, cada cuántos segundos |

@@ -53,6 +53,8 @@ pre{white-space:pre-wrap;word-break:break-all;font-size:12px;margin:0;max-height
 <label>Distancia máx. (km, 0 = todas)<input id="f_km" type="number" step="0.1"></label>
 <label>Estaciones APRS en tierra<select id="f_aton"><option value="1">Ayuda a la navegación (sin alarma)</option><option value="0">Buque AIS (clase B)</option></select></label>
 <label>No enviar (indicativos)<input id="f_ign" placeholder="EA7JRS-5"></label>
+<label>Emitir GPS del tracker al bus<select id="f_gps"><option value="0">No (el barco ya tiene GPS)</option><option value="1">Sí, si no hay otro GPS</option></select></label>
+<label>Indicativo del tracker (el barco)<input id="f_own" placeholder="EA7JRS-5"></label>
 <label>Cristal del MCP2515<select id="f_mhz"><option value="16">16 MHz</option><option value="8">8 MHz</option></select></label>
 <label>Ambiente al bus<select id="f_env"><option value="1">Sí</option><option value="0">No</option></select></label>
 <label>Batería en D1<select id="f_bat"><option value="0">No</option><option value="1">Sí</option></select></label>
@@ -98,12 +100,13 @@ $('rc').textContent=s.recent.slice().reverse().join('\n');
 async function loadCfg(){cfg=await (await fetch('/api/config')).json();$('raw').value=JSON.stringify(cfg,null,2);
 const t=cfg.tracker,a=cfg.ais,k=cfg.n2k,w=cfg.wifi;$('f_src').value=t.src;$('f_host').value=t.tcpHost;$('f_port').value=t.tcpPort;$('f_ble').value=t.bleName;
 $('f_wm').value=w.mode;$('f_ssid').value=w.ssid;$('f_pass').value=w.pass;$('f_ap').value=w.apPass;$('f_mid').value=a.mid;$('f_ref').value=a.refreshS;$('f_ttl').value=a.ttlMin;
-$('f_km').value=a.maxKm;$('f_aton').value=a.aton?1:0;$('f_ign').value=a.ignore;$('f_mhz').value=k.mhz;$('f_env').value=k.env?1:0;$('f_bat').value=cfg.log.battery?1:0;$('f_an').value=cfg.anemo.on?1:0;$('f_kmh').value=cfg.anemo.kmhPerHz;$('f_wref').value=cfg.anemo.ref;}
+$('f_km').value=a.maxKm;$('f_aton').value=a.aton?1:0;$('f_ign').value=a.ignore;$('f_gps').value=cfg.gps.on?1:0;$('f_own').value=cfg.gps.ownCall;$('f_mhz').value=k.mhz;$('f_env').value=k.env?1:0;$('f_bat').value=cfg.log.battery?1:0;$('f_an').value=cfg.anemo.on?1:0;$('f_kmh').value=cfg.anemo.kmhPerHz;$('f_wref').value=cfg.anemo.ref;}
 async function post(u,b){const r=await fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:b});const j=await r.json().catch(()=>({}));
 $('msg').textContent=j.ok?'Guardado; reiniciando...':('Error: '+(j.err||r.status));if(j.ok)setTimeout(()=>location.reload(),6000);}
 function saveForm(){const c={tracker:{src:$('f_src').value,tcpHost:$('f_host').value.trim(),tcpPort:+$('f_port').value,bleName:$('f_ble').value.trim()},
 wifi:{mode:+$('f_wm').value,ssid:$('f_ssid').value,pass:$('f_pass').value,apPass:$('f_ap').value},
 ais:{mid:+$('f_mid').value,refreshS:+$('f_ref').value,ttlMin:+$('f_ttl').value,maxKm:+$('f_km').value,aton:$('f_aton').value=='1',ignore:$('f_ign').value.trim()},
+gps:{on:$('f_gps').value=='1',ownCall:$('f_own').value.trim()},
 n2k:{mhz:+$('f_mhz').value,env:$('f_env').value=='1'},log:{battery:$('f_bat').value=='1'},
 anemo:{on:$('f_an').value=='1',kmhPerHz:+$('f_kmh').value,ref:$('f_wref').value}};post('/api/config',JSON.stringify(c));}
 function saveRaw(){try{JSON.parse($('raw').value)}catch(e){$('msg').textContent='JSON no válido';return}post('/api/config',$('raw').value);}

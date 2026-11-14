@@ -1,3 +1,5 @@
+<p align="center"><a href="https://ea7jrs.github.io/APRS-LoRa-Plus/"><img src="docs/img/aprs-lora-plus-banner.jpg" alt="APRS LoRa+ · Tracker · APRS · Map · Alerts" width="100%"></a></p>
+
 # APRS LoRa+ NMEA 2000
 
 Pasarela del tracker **APRS LoRa+** al bus **NMEA 2000** del barco: las estaciones APRS que oye el tracker salen en el plotter (Garmin GPSMAP y otros) como **blancos AIS**, y la temperatura y la humedad del HAT XIAO-LOG como datos de ambiente.

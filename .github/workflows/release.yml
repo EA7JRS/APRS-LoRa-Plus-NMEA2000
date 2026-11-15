@@ -37,6 +37,7 @@ jobs:
               run: |
                   V=$(grep -o 'GW_VERSION "[^"]*' src/config.h | sed 's/.*"//')
                   echo "VERSION=$V" >> "$GITHUB_ENV"
+                  case "$TAG" in v[0-9]*) ;; *) echo "::error::la etiqueta $TAG no tiene la forma vX.Y.Z (sin punto tras la v): debe ser v$V"; exit 1;; esac
                   [ "v$V" = "$TAG" ] || { echo "::error::la etiqueta $TAG no coincide con GW_VERSION $V"; exit 1; }
             - name: PlatformIO
               run: pip install platformio "esptool==4.8.1"

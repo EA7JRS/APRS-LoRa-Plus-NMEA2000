@@ -56,3 +56,7 @@ test_host/          pruebas en el PC
 ```
 
 Librerías: NMEA2000 y NMEA2000_mcp (Timo Lappalainen, MIT), CAN_BUS_Shield (Seeed Studio, MIT), NimBLE-Arduino, ArduinoJson.
+
+## Referencia de formatos: CANboat
+
+Los PGN salen de la librería NMEA2000 de ttlappalainen; las unidades y los campos que se le pasan se han contrastado con la base de datos de **[CANboat](https://canboat.github.io/canboat/)** v9.2.0 (Apache-2.0). `canboat.dbc` (en esa misma página) sirve para ver el bus con SavvyCAN o Wireshark al depurar.

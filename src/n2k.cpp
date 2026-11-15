@@ -28,7 +28,8 @@ namespace N2k {
     static uint8_t sid = 0;
     static uint8_t seen[32];                     // fuentes oídas (bit por dirección)
 
-    static const unsigned long TX[] = {129038L, 129039L, 129794L, 129809L, 129810L, 130306L, 130311L, 130312L, 130313L, 0};
+    static const unsigned long TX[] = {129038L, 129039L, 129794L, 129809L, 129810L, 129041L, 130306L, 130311L, 130312L,
+                                       130313L, 130314L, 130316L, 129025L, 129026L, 129029L, 0};
     static const unsigned long RX[] = {126992L, 129025L, 129029L, 0};
 
     static void setTime(uint16_t days, double secs) {

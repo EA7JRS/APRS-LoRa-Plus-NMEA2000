@@ -27,6 +27,7 @@ Punto 1 del «kit CAN» de Manuel (XIAO ESP32-S3 + XIAO CAN Bus Expansion Board 
 - Falta: comprobar con un Garmin GPSMAP que acepta los MMSI 8xxxxxxxx y cómo los muestra; mensajes APRS al plotter (¿129802?); lanzador en el instalador web del tracker; sección en la app (regla del ecosistema: todo controlable desde la app).
 
 ## Versión
+- **5.4.7** (2026-11-20): solo el número (`GW_VERSION`, README, manuales); release con la etiqueta `v5.4.7` o la rama `release/v5.4.7`.
 - **5.4.6** (2026-11-15): `GW_VERSION` en `src/config.h`, README y manuales. La release la crea Manuel con la etiqueta `v5.4.6` (sin punto tras la v; la primera, `v.5.4.6`, falló en la CI: no coincidía con la forma ni con `GW_VERSION`, que seguía en 5.4.5). `release.yml` avisa ahora si la etiqueta no es `vX.Y.Z`.
 
 ## Cómo trabajar

@@ -4,7 +4,7 @@
 
 Pasarela del tracker **APRS LoRa+** al bus **NMEA 2000** del barco: las estaciones APRS que oye el tracker salen en el plotter (Garmin GPSMAP y otros) como **blancos AIS**, y la temperatura y la humedad del HAT XIAO-LOG como datos de ambiente.
 
-Copyright (C) 2026 Manuel - EA7JRS · GPL-3.0-or-later · versión **5.4.6** (la misma que el tracker, el rotor, la app y el gateway).
+Copyright (C) 2026 Manuel - EA7JRS · GPL-3.0-or-later · versión **5.4.7** (la misma que el tracker, el rotor, la app y el gateway).
 
 ```
  Tracker APRS LoRa+ ──KISS por WiFi (TCP 8001) o por BLE──► XIAO ESP32-S3 + CAN (MCP2515) ──NMEA 2000──► plotter

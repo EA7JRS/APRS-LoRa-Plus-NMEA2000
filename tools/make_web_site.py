@@ -5,7 +5,7 @@
 # Prepara los ficheros de la pasarela NMEA 2000 (XIAO ESP32-S3) para el instalador web de APRS LoRa+
 # (https://ea7jrs.github.io/APRS-LoRa-Plus/, grupo "Nautica"); el contrato esta en docs/WEB_INSTALLER.md del tracker.
 #
-#   make_web_site.py --board xiao_esp32s3_can --version 5.4.6 --build-dir .pio/build/xiao_esp32s3_can \
+#   make_web_site.py --board xiao_esp32s3_can --version 5.4.7 --build-dir .pio/build/xiao_esp32s3_can \
 #                    --boot-app0 RUTA/boot_app0.bin --out site
 #
 # Deja en "site":

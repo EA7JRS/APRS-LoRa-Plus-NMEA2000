@@ -65,7 +65,7 @@ The tracker accepts **only one Bluetooth connection**: if the phone app is conne
 ## 7. WebUI
 
 - **Tracker**: link (WiFi, BLE), bytes and frames received, positions, ignored and distant ones.
-- **NMEA 2000**: bus open (if not, the MCP2515 does not answer: crystal, CS, wiring), bus address, messages sent and failures, devices heard, boat position and time, and the bus diagnostics: *Errores CAN* (the MCP2515 transmit and receive error counters, error passive, bus off), *Tramas perdidas* (lost frames), *Interrupción* (interrupt) and *Equipos del bus* (each device with its address, manufacturer and model, e.g. «Garmin GPSMAP 943»).
+- **NMEA 2000**: bus open (if not, the SPI test says which wire fails), bus address, messages sent and failures, devices heard, boat position and time, and the bus diagnostics: *Errores CAN* (the MCP2515 transmit and receive error counters, error passive, bus off), *Tramas perdidas* (lost frames), *Interrupción* (interrupt) and *Equipos del bus* (each device with its address, manufacturer and model, e.g. «Garmin GPSMAP 943»).
 - **Ambiente**: temperature, humidity, light, clock, battery; with an anemometer, 3-s wind, 2 and 10 min averages, gust, Beaufort and pulses per second (for calibration).
 - **Blancos AIS**: name, MMSI, class, position, course and speed, distance to the boat and how long ago it was heard.
 - **Últimos paquetes**: the last 20 in TNC2 text.
@@ -118,7 +118,8 @@ File `/gw_conf.json` (WebUI > Configuración > JSON):
 
 | Symptom | What to check |
 |---|---|
-| *Bus: sin MCP2515* | crystal (`n2k.mhz`), XIAO well seated on the CAN board, CS on D7 |
+| *Bus: cerrado: el MCP2515 no contesta por el SPI* (does not answer over SPI) | XIAO well seated on the CAN board, CS on D7, MISO (D9); it is not the crystal |
+| *Bus: cerrado: el MCP2515 contesta pero no guarda lo que se le escribe* (answers but does not keep what is written) | MOSI (D10): with the XIAO-LOG on top, its D10 fix is missing ([HARDWARE.md](HARDWARE.md)) |
 | Bus open but the plotter shows nothing | see *The plotter does not see the gateway* below; AIS layer off |
 | *TCP: no encuentro el tracker* | KISS WiFi enabled on the tracker, both on the same network; try the tracker's IP |
 | *BLE: no aparece ningún tracker* | tracker Bluetooth off or set to *Classic*; the app or the plotter connected to it over BLE (only one connection allowed) |

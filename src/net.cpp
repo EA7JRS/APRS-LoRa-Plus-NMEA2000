@@ -79,6 +79,7 @@ namespace Net {
         nk["tec"] = n.tec; nk["rec"] = n.rec; nk["tecMax"] = n.tecMax; nk["recMax"] = n.recMax; nk["mode"] = n.mode;
         nk["busOffNow"] = n.busOffNow; nk["errPassive"] = n.errPassive; nk["busOff"] = n.busOff; nk["lost"] = n.rxOverflow;
         nk["addrChanges"] = n.addrChanges; nk["int"] = n.intPin; nk["ints"] = n.ints; nk["unique"] = n.unique;
+        nk["spi"] = n.spi; nk["canstat"] = n.probeStat; nk["canctrl"] = n.probeCtrl;
         N2k::devicesJson(nk["list"].to<JsonArray>());
         if (n.hasOwn) { nk["lat"] = r6(n.ownLat); nk["lon"] = r6(n.ownLon); nk["posAgeS"] = (now - n.ownAt) / 1000; }
         if (n.hasTime) nk["utc"] = (uint32_t)(n.time + (now - n.timeAt) / 1000);

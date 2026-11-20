@@ -31,6 +31,8 @@ namespace N2k {
         uint32_t addrChanges = 0, ints = 0;
         int      intPin = -1;
         unsigned long unique = 0;              // número único del NAME (de la MAC)
+        const char* spi = "";                  // resultado de la prueba del SPI del MCP2515
+        uint8_t  probeStat = 0, probeCtrl = 0; // CANSTAT y CANCTRL tras el reset (0x80 y 0x87 si va bien)
     };
 
     void          begin();

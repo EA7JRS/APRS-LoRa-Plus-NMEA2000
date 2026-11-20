@@ -88,7 +88,7 @@ $('ver').textContent=s.ver;$('ver2').textContent=s.ver;
 $('hdr').innerHTML=esc(s.name)+'<br>'+(s.wifi.ap?'AP ':'')+esc(s.wifi.ip);
 const l=s.link;kv('lk',[['Estado',esc(l.state)],['Por WiFi',yes(l.tcp,'conectado '+esc(l.tcpPeer),'no')],['Por BLE',yes(l.ble,'conectado '+esc(l.blePeer)+(l.bleText?' (TNC2)':''),'no')],l.seen?['Vistos por BLE',esc(l.seen)]:null,
 ['Recibido',l.bytes+' bytes · '+s.gate.frames+' tramas'],['Último dato',ago(l.ageS)],['Posiciones',s.gate.positions+(s.gate.ignored?' · '+s.gate.ignored+' ignoradas':'')+(s.gate.far?' · '+s.gate.far+' lejos':'')]]);
-const n=s.n2k;kv('nk',[['Bus',yes(n.open,'abierto','sin MCP2515 (cristal, CS, cableado)')],['Dirección',n.addr],['Enviados',n.sent+(n.errors?' · <span class="bad">'+n.errors+' fallos</span>':'')],
+const n=s.n2k;kv('nk',[['Bus',yes(n.open,'abierto','cerrado: '+esc(n.spi||'sin MCP2515')+' (CANSTAT '+(n.canstat??0).toString(16).toUpperCase()+', CANCTRL '+(n.canctrl??0).toString(16).toUpperCase()+')')],['Dirección',n.addr],['Enviados',n.sent+(n.errors?' · <span class="bad">'+n.errors+' fallos</span>':'')],
 ['Recibidos',n.rx+' · '+n.devices+' equipos'],
 ['Errores CAN','emisión '+n.tec+' (máx. '+n.tecMax+') · recepción '+n.rec+' (máx. '+n.recMax+')'+(n.busOffNow?' · <span class="bad">fuera del bus</span>':n.errPassive?' · <span class="bad">error pasivo</span>':'')+(n.busOff?' · '+n.busOff+' veces fuera':'')+(n.mode?' · <span class="bad">modo '+n.mode+'</span>':'')],
 ['Tramas perdidas',n.lost?'<span class="bad">'+n.lost+'</span>':'0'],['Interrupción',n.int>=0?'GPIO'+n.int+' · '+n.ints:'no (cada ms)'],

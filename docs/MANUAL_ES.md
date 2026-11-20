@@ -64,7 +64,7 @@ El tracker admite **una sola conexión Bluetooth**: si la app del móvil está c
 ## 7. WebUI
 
 - **Tracker**: enlace (WiFi, BLE), bytes y tramas recibidos, posiciones, ignoradas y lejanas.
-- **NMEA 2000**: bus abierto (si no, el MCP2515 no contesta: cristal, CS, cableado), dirección en el bus, mensajes enviados y fallos, equipos oídos, posición y hora del barco, y el diagnóstico del bus: *Errores CAN* (contadores de emisión y de recepción del MCP2515, error pasivo, fuera del bus), *Tramas perdidas*, *Interrupción* y *Equipos del bus* (cada uno con su dirección, fabricante y modelo, p. ej. «Garmin GPSMAP 943»).
+- **NMEA 2000**: bus abierto (si no, la prueba del SPI dice qué hilo falla), dirección en el bus, mensajes enviados y fallos, equipos oídos, posición y hora del barco, y el diagnóstico del bus: *Errores CAN* (contadores de emisión y de recepción del MCP2515, error pasivo, fuera del bus), *Tramas perdidas*, *Interrupción* y *Equipos del bus* (cada uno con su dirección, fabricante y modelo, p. ej. «Garmin GPSMAP 943»).
 - **Ambiente**: temperatura, humedad, luz, reloj, batería; con anemómetro, viento de 3 s, medio de 2 y 10 min, racha, Beaufort e impulsos por segundo (para calibrar).
 - **Blancos AIS**: nombre, MMSI, clase, posición, rumbo y velocidad, distancia al barco y hace cuánto se oyó.
 - **Últimos paquetes**: los 20 últimos en texto TNC2.
@@ -117,7 +117,8 @@ Fichero `/gw_conf.json` (WebUI > Configuración > JSON):
 
 | Síntoma | Qué mirar |
 |---|---|
-| *Bus: sin MCP2515* | cristal (`n2k.mhz`), XIAO bien asentado en el kit CAN, CS en D7 |
+| *Bus: cerrado: el MCP2515 no contesta por el SPI* | XIAO bien asentado en el kit CAN, CS en D7, MISO (D9); no es el cristal |
+| *Bus: cerrado: el MCP2515 contesta pero no guarda lo que se le escribe* | MOSI (D10): con el XIAO-LOG encima, falta su arreglo de D10 ([HARDWARE.md](HARDWARE.md)) |
 | Bus abierto pero el plotter no ve nada | ver *El plotter no ve la pasarela*, abajo; capa AIS apagada |
 | *TCP: no encuentro el tracker* | KISS WiFi activado en el tracker, los dos en la misma red; prueba con la IP del tracker |
 | *BLE: no aparece ningún tracker* | Bluetooth del tracker apagado o en *Clásico*; la app o el plotter conectados a él por BLE (solo admite una conexión) |

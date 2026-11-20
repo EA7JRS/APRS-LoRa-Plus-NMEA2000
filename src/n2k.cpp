@@ -98,6 +98,43 @@ namespace N2k {
         SPI.endTransaction();
     }
 
+    static void mcpWrite(uint8_t reg, uint8_t v) {
+        SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
+        digitalWrite(Cfg.canCs, LOW);
+        SPI.transfer(0x02);
+        SPI.transfer(reg);
+        SPI.transfer(v);
+        digitalWrite(Cfg.canCs, HIGH);
+        SPI.endTransaction();
+    }
+
+    // Prueba del SPI antes de abrir el bus: dice qué hilo falla. El cristal no influye aquí: un cristal equivocado
+    // deja hablar por el SPI y lo que falla es el bus (errores de recepción en la WebUI).
+    static const char* probe() {
+        SPI.begin();
+        pinMode(Cfg.canCs, OUTPUT);
+        digitalWrite(Cfg.canCs, HIGH);
+        SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
+        digitalWrite(Cfg.canCs, LOW);
+        SPI.transfer(0xC0);                                  // reset: queda en modo configuración
+        digitalWrite(Cfg.canCs, HIGH);
+        SPI.endTransaction();
+        delay(10);
+        const uint8_t stat = mcpRead(0x0E), ctrl = mcpRead(0x0F);
+        st.probeStat = stat; st.probeCtrl = ctrl;
+        if ((stat == 0xFF && ctrl == 0xFF) || (stat == 0 && ctrl == 0))
+            return "el MCP2515 no contesta por el SPI: XIAO mal asentado en el kit CAN, CS (D7), MISO (D9) o sin 3V3";
+        bool ok = true;
+        for (uint8_t v : {(uint8_t)0x55, (uint8_t)0xAA, (uint8_t)0x00}) {   // CNF1: se puede escribir en modo configuración
+            mcpWrite(0x2A, v);
+            if (mcpRead(0x2A) != v) ok = false;
+        }
+        if ((stat & 0xE0) != 0x80 || !ok)
+            return "el MCP2515 contesta pero no guarda lo que se le escribe: MOSI (D10). Con el XIAO-LOG, falta el arreglo de "
+                   "D10 (docs/HARDWARE.md)";
+        return "SPI bien";
+    }
+
     static void readDiag() {
         st.tec = mcpRead(0x1C);
         st.rec = mcpRead(0x1D);
@@ -119,11 +156,13 @@ namespace N2k {
     }
 
     static void busLoop(void*) {
-        uint32_t lastDiag = 0;
+        uint32_t lastDiag = 0, lastProbe = millis();
         for (;;) {
             ulTaskNotifyTake(pdTRUE, 1);                     // la interrupción o, como mucho, 1 ms
             xSemaphoreTake(busMtx, portMAX_DELAY);
-            bus->ParseMessages();
+            bus->ParseMessages();                            // si no se abrió, la librería lo vuelve a intentar
+            st.open = bus->IsOpen();
+            if (!st.open && millis() - lastProbe >= 10000) { lastProbe = millis(); st.spi = probe(); }
             if (bus->ReadResetAddressChanged()) {
                 st.address = bus->GetN2kSource();
                 st.addrChanges++;
@@ -199,6 +238,8 @@ namespace N2k {
         bus->SetMsgHandler(handler);
         devList = new tN2kDeviceList(bus);                    // otros equipos del bus (nombre y modelo, para la WebUI)
         busMtx = xSemaphoreCreateMutex();
+        st.spi = probe();
+        Serial.printf("n2k: %s (CANSTAT %02X, CANCTRL %02X)\n", st.spi, st.probeStat, st.probeCtrl);
         st.open = bus->Open();
         st.address = addr;
         st.unique = unique;

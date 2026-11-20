@@ -18,6 +18,7 @@
 #include <Preferences.h>
 #include <SPI.h>
 #include <freertos/semphr.h>
+#include <atomic>
 #include <cstring>
 #include <ctime>
 #include <cmath>
@@ -28,7 +29,7 @@ namespace N2k {
     static tN2kDeviceList* devList = nullptr;
     static SemaphoreHandle_t busMtx = nullptr;        // la librería no es para varios hilos: todo el bus con esta llave
     static TaskHandle_t busTask = nullptr;
-    static volatile uint32_t intCount = 0;
+    static std::atomic<uint32_t> intCount{0};
     static Status st;
     static Preferences prefs;
     static uint32_t lastEnv = 0, lastEvent = 0, lastWind = 0, lastGps = 0, lastWx = 0;

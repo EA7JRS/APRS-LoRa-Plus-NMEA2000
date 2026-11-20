@@ -113,7 +113,8 @@ namespace TrackerLink {
         if (client && client->isConnected()) { st.ble = true; return; }
         if (st.ble) { st.ble = false; setState("BLE: enlace perdido"); bleRetryAt = millis() + 2000; }
         if ((int32_t)(millis() - bleRetryAt) < 0) return;
-        found = textFound = false;
+        found = false;
+        textFound = false;
         seenList.clear();
         seenCount = 0;
         setState("BLE: buscando el tracker");

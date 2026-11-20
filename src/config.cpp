@@ -74,9 +74,12 @@ namespace Config {
         if (n.n2kAddr < 0 || n.n2kAddr > 251) return "n2k.addr 0-251";
         if (n.envS < 1 || n.envS > 60) return "n2k.envS 1-60";
         for (int used : {7, 8, 9, n.sda, n.scl}) if (n.canCs == used) return "n2k.cs (SPI / I2C pin)";
+        if (n.canInt < -1 || n.canInt > 48) return "n2k.int -1 | 0-48";
+        if (n.canInt >= 0) for (int used : {7, 8, 9, n.canCs, n.sda, n.scl}) if (n.canInt == used) return "n2k.int (SPI / CS / I2C pin)";
         if (n.anemoOn) {
             if (n.anemoPin < 0 || n.anemoPin > 48) return "anemo.pin";
             for (int used : {7, 8, 9, n.canCs, n.sda, n.scl, 1}) if (n.anemoPin == used) return "anemo.pin (en uso: SPI, CS, I2C o reloj)";
+            if (n.anemoPin == n.canInt) return "anemo.pin (INT del MCP2515)";
             if (n.battery && n.anemoPin == n.batPin) return "anemo.pin (batería)";
         }
         if (!(n.anemoKmhHz > 0.1 && n.anemoKmhHz < 50)) return "anemo.kmhPerHz 0.1-50";

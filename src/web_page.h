@@ -57,6 +57,7 @@ pre{white-space:pre-wrap;word-break:break-all;font-size:12px;margin:0;max-height
 <label>Indicativo del tracker (el barco)<input id="f_own" placeholder="EA7JRS-5"></label>
 <label>Tiempo de internet de la app al bus<select id="f_wx"><option value="0">No</option><option value="1">Sí, si no hay sensores</option></select></label>
 <label>Cristal del MCP2515<select id="f_mhz"><option value="16">16 MHz</option><option value="8">8 MHz</option></select></label>
+<label>Interrupción del MCP2515<select id="f_int"><option value="43">D6 (kit CAN)</option><option value="-1">ninguna (consulta cada ms)</option></select></label>
 <label>Ambiente al bus<select id="f_env"><option value="1">Sí</option><option value="0">No</option></select></label>
 <label>Batería en D1<select id="f_bat"><option value="0">No</option><option value="1">Sí</option></select></label>
 <label>Anemómetro (D3)<select id="f_an"><option value="0">No</option><option value="1">Sí</option></select></label>
@@ -85,10 +86,13 @@ const yes=(b,t,f)=>b?`<span class="okc">${t}</span>`:`<span class="bad">${f}</sp
 async function tick(){try{const r=await fetch('/api/status');const s=await r.json();
 $('ver').textContent=s.ver;$('ver2').textContent=s.ver;
 $('hdr').innerHTML=esc(s.name)+'<br>'+(s.wifi.ap?'AP ':'')+esc(s.wifi.ip);
-const l=s.link;kv('lk',[['Estado',esc(l.state)],['Por WiFi',yes(l.tcp,'conectado '+esc(l.tcpPeer),'no')],['Por BLE',yes(l.ble,'conectado '+esc(l.blePeer),'no')],
+const l=s.link;kv('lk',[['Estado',esc(l.state)],['Por WiFi',yes(l.tcp,'conectado '+esc(l.tcpPeer),'no')],['Por BLE',yes(l.ble,'conectado '+esc(l.blePeer)+(l.bleText?' (TNC2)':''),'no')],l.seen?['Vistos por BLE',esc(l.seen)]:null,
 ['Recibido',l.bytes+' bytes · '+s.gate.frames+' tramas'],['Último dato',ago(l.ageS)],['Posiciones',s.gate.positions+(s.gate.ignored?' · '+s.gate.ignored+' ignoradas':'')+(s.gate.far?' · '+s.gate.far+' lejos':'')]]);
 const n=s.n2k;kv('nk',[['Bus',yes(n.open,'abierto','sin MCP2515 (cristal, CS, cableado)')],['Dirección',n.addr],['Enviados',n.sent+(n.errors?' · <span class="bad">'+n.errors+' fallos</span>':'')],
-['Recibidos',n.rx+' · '+n.devices+' equipos'],['Barco',n.lat!=null?dm(n.lat,'N','S')+' '+dm(n.lon,'E','W')+' ('+ago(n.posAgeS)+')':'—'],['Hora del bus',n.utc?new Date(n.utc*1000).toISOString().replace('T',' ').slice(0,19)+' UTC':'—'],
+['Recibidos',n.rx+' · '+n.devices+' equipos'],
+['Errores CAN','emisión '+n.tec+' (máx. '+n.tecMax+') · recepción '+n.rec+' (máx. '+n.recMax+')'+(n.busOffNow?' · <span class="bad">fuera del bus</span>':n.errPassive?' · <span class="bad">error pasivo</span>':'')+(n.busOff?' · '+n.busOff+' veces fuera':'')+(n.mode?' · <span class="bad">modo '+n.mode+'</span>':'')],
+['Tramas perdidas',n.lost?'<span class="bad">'+n.lost+'</span>':'0'],['Interrupción',n.int>=0?'GPIO'+n.int+' · '+n.ints:'no (cada ms)'],
+['Equipos del bus',(n.list||[]).map(d=>d.src+': '+esc(d.manName||('fabricante '+d.man))+(d.model?' '+esc(d.model):'')+(d.sw?' <span class="mut">'+esc(d.sw)+'</span>':'')).join('<br>')||'—'],['Barco',n.lat!=null?dm(n.lat,'N','S')+' '+dm(n.lon,'E','W')+' ('+ago(n.posAgeS)+')':'—'],['Hora del bus',n.utc?new Date(n.utc*1000).toISOString().replace('T',' ').slice(0,19)+' UTC':'—'],
 ['WiFi',(s.wifi.ap?'punto de acceso '+esc(s.wifi.ssid)+' · '+(s.wifi.clients||0)+' equipos':esc(s.wifi.ssid)+(s.wifi.rssi?' ('+s.wifi.rssi+' dBm)':''))]]);
 const g=s.log;kv('lg',g.on?[['Temperatura',g.t!=null?g.t+' °C':(g.sht?'—':'sin SHT40')],['Humedad',g.h!=null?g.h+' %':'—'],['Luz',g.lux!=null?g.lux+' lx':(g.light?'—':'sin BH1750')],
 ['Reloj',g.rtc?'PCF8563':'no'],g.bat!=null?['Batería',g.bat+' V']:null,['Hora',s.time?new Date(s.time*1000).toISOString().replace('T',' ').slice(0,19)+' UTC':'—']]:[['HAT','apagado']]);
@@ -101,14 +105,14 @@ $('rc').textContent=s.recent.slice().reverse().join('\n');
 async function loadCfg(){cfg=await (await fetch('/api/config')).json();$('raw').value=JSON.stringify(cfg,null,2);
 const t=cfg.tracker,a=cfg.ais,k=cfg.n2k,w=cfg.wifi;$('f_src').value=t.src;$('f_host').value=t.tcpHost;$('f_port').value=t.tcpPort;$('f_ble').value=t.bleName;
 $('f_wm').value=w.mode;$('f_ssid').value=w.ssid;$('f_pass').value=w.pass;$('f_ap').value=w.apPass;$('f_mid').value=a.mid;$('f_ref').value=a.refreshS;$('f_ttl').value=a.ttlMin;
-$('f_km').value=a.maxKm;$('f_aton').value=a.aton?1:0;$('f_ign').value=a.ignore;$('f_gps').value=cfg.gps.on?1:0;$('f_own').value=cfg.gps.ownCall;$('f_wx').value=cfg.gps.wx?1:0;$('f_mhz').value=k.mhz;$('f_env').value=k.env?1:0;$('f_bat').value=cfg.log.battery?1:0;$('f_an').value=cfg.anemo.on?1:0;$('f_kmh').value=cfg.anemo.kmhPerHz;$('f_wref').value=cfg.anemo.ref;}
+$('f_km').value=a.maxKm;$('f_aton').value=a.aton?1:0;$('f_ign').value=a.ignore;$('f_gps').value=cfg.gps.on?1:0;$('f_own').value=cfg.gps.ownCall;$('f_wx').value=cfg.gps.wx?1:0;$('f_mhz').value=k.mhz;$('f_int').value=k.int<0?-1:43;$('f_env').value=k.env?1:0;$('f_bat').value=cfg.log.battery?1:0;$('f_an').value=cfg.anemo.on?1:0;$('f_kmh').value=cfg.anemo.kmhPerHz;$('f_wref').value=cfg.anemo.ref;}
 async function post(u,b){const r=await fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:b});const j=await r.json().catch(()=>({}));
 $('msg').textContent=j.ok?'Guardado; reiniciando...':('Error: '+(j.err||r.status));if(j.ok)setTimeout(()=>location.reload(),6000);}
 function saveForm(){const c={tracker:{src:$('f_src').value,tcpHost:$('f_host').value.trim(),tcpPort:+$('f_port').value,bleName:$('f_ble').value.trim()},
 wifi:{mode:+$('f_wm').value,ssid:$('f_ssid').value,pass:$('f_pass').value,apPass:$('f_ap').value},
 ais:{mid:+$('f_mid').value,refreshS:+$('f_ref').value,ttlMin:+$('f_ttl').value,maxKm:+$('f_km').value,aton:$('f_aton').value=='1',ignore:$('f_ign').value.trim()},
 gps:{on:$('f_gps').value=='1',wx:$('f_wx').value=='1',ownCall:$('f_own').value.trim()},
-n2k:{mhz:+$('f_mhz').value,env:$('f_env').value=='1'},log:{battery:$('f_bat').value=='1'},
+n2k:{mhz:+$('f_mhz').value,int:+$('f_int').value,env:$('f_env').value=='1'},log:{battery:$('f_bat').value=='1'},
 anemo:{on:$('f_an').value=='1',kmhPerHz:+$('f_kmh').value,ref:$('f_wref').value}};post('/api/config',JSON.stringify(c));}
 function saveRaw(){try{JSON.parse($('raw').value)}catch(e){$('msg').textContent='JSON no válido';return}post('/api/config',$('raw').value);}
 tick();loadCfg();setInterval(tick,2000);

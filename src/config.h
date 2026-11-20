@@ -50,7 +50,7 @@ struct GwConfig {
     // NMEA 2000 (MCP2515)
     int         canCs = 44;                      // D7
     int         canMHz = 16;                     // cristal del MCP2515: 16 u 8
-    int         canInt = -1;                     // sin interrupción: se consulta en el bucle
+    int         canInt = 43;                     // D6, INT del MCP2515 en el kit CAN; -1 = sin interrupción (se consulta cada ms)
     int         n2kAddr = 34;                    // dirección preferida (se negocia en el bus y se guarda la que queda)
     bool        sendEnv = true;                  // temperatura y humedad del HAT al bus
     int         envS = 5;

@@ -53,7 +53,8 @@ namespace Net {
         const TrackerLink::Status l = TrackerLink::status();
         JsonObject lk = d["link"].to<JsonObject>();
         lk["src"] = Cfg.src; lk["ble"] = l.ble; lk["tcp"] = l.tcp; lk["state"] = l.state; lk["bytes"] = l.bytes;
-        lk["blePeer"] = l.blePeer; lk["tcpPeer"] = l.tcpPeer;
+        lk["blePeer"] = l.blePeer; lk["tcpPeer"] = l.tcpPeer; lk["bleText"] = l.bleText;
+        if (!l.seen.empty()) lk["seen"] = l.seen;
         if (l.lastData) lk["ageS"] = (now - l.lastData) / 1000;
         const auto& gs = gate->stats();
         JsonObject g = d["gate"].to<JsonObject>();
@@ -75,6 +76,10 @@ namespace Net {
         const N2k::Status& n = N2k::status();
         JsonObject nk = d["n2k"].to<JsonObject>();
         nk["open"] = n.open; nk["addr"] = n.address; nk["sent"] = n.sent; nk["errors"] = n.errors; nk["rx"] = n.received; nk["devices"] = n.devices;
+        nk["tec"] = n.tec; nk["rec"] = n.rec; nk["tecMax"] = n.tecMax; nk["recMax"] = n.recMax; nk["mode"] = n.mode;
+        nk["busOffNow"] = n.busOffNow; nk["errPassive"] = n.errPassive; nk["busOff"] = n.busOff; nk["lost"] = n.rxOverflow;
+        nk["addrChanges"] = n.addrChanges; nk["int"] = n.intPin; nk["ints"] = n.ints; nk["unique"] = n.unique;
+        N2k::devicesJson(nk["list"].to<JsonArray>());
         if (n.hasOwn) { nk["lat"] = r6(n.ownLat); nk["lon"] = r6(n.ownLon); nk["posAgeS"] = (now - n.ownAt) / 1000; }
         if (n.hasTime) nk["utc"] = (uint32_t)(n.time + (now - n.timeAt) / 1000);
         const LogHat::Data& h = LogHat::data();

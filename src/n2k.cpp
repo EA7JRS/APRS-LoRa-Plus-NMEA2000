@@ -13,8 +13,11 @@
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <NMEA2000_mcp.h>
 #include <N2kMessages.h>
+#include <N2kDeviceList.h>
 #pragma GCC diagnostic pop
 #include <Preferences.h>
+#include <SPI.h>
+#include <freertos/semphr.h>
 #include <cstring>
 #include <ctime>
 #include <cmath>
@@ -22,6 +25,10 @@
 namespace N2k {
 
     static tNMEA2000_mcp* bus = nullptr;
+    static tN2kDeviceList* devList = nullptr;
+    static SemaphoreHandle_t busMtx = nullptr;        // la librería no es para varios hilos: todo el bus con esta llave
+    static TaskHandle_t busTask = nullptr;
+    static volatile uint32_t intCount = 0;
     static Status st;
     static Preferences prefs;
     static uint32_t lastEnv = 0, lastEvent = 0, lastWind = 0, lastGps = 0, lastWx = 0;
@@ -67,11 +74,112 @@ namespace N2k {
         }
     }
 
+    // ---------------------------------------------------------------------------------------------- diagnóstico
+    // Lectura directa de registros del MCP2515 (con la llave del bus): contadores de errores y desbordes.
+    static uint8_t mcpRead(uint8_t reg) {
+        SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
+        digitalWrite(Cfg.canCs, LOW);
+        SPI.transfer(0x03);
+        SPI.transfer(reg);
+        const uint8_t v = SPI.transfer(0);
+        digitalWrite(Cfg.canCs, HIGH);
+        SPI.endTransaction();
+        return v;
+    }
+    static void mcpBitModify(uint8_t reg, uint8_t mask, uint8_t data) {
+        SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
+        digitalWrite(Cfg.canCs, LOW);
+        SPI.transfer(0x05);
+        SPI.transfer(reg);
+        SPI.transfer(mask);
+        SPI.transfer(data);
+        digitalWrite(Cfg.canCs, HIGH);
+        SPI.endTransaction();
+    }
+
+    static void readDiag() {
+        st.tec = mcpRead(0x1C);
+        st.rec = mcpRead(0x1D);
+        const uint8_t eflg = mcpRead(0x2D);
+        st.mode = (uint8_t)(mcpRead(0x0E) >> 5);             // 0 normal, 1 dormido, 2 bucle, 3 solo escucha, 4 configuración
+        if (eflg & 0xC0) { st.rxOverflow++; mcpBitModify(0x2D, 0xC0, 0); }   // RX0OVR / RX1OVR: se perdió una trama
+        if ((eflg & 0x20) && !st.busOffNow) st.busOff++;     // TXBO: el MCP2515 se ha retirado del bus
+        st.busOffNow = eflg & 0x20;
+        st.errPassive = eflg & 0x18;                         // TXEP / RXEP
+        if (st.tec > st.tecMax) st.tecMax = st.tec;
+        if (st.rec > st.recMax) st.recMax = st.rec;
+    }
+
+    static void IRAM_ATTR onInt() {
+        intCount++;
+        BaseType_t woken = pdFALSE;
+        if (busTask) vTaskNotifyGiveFromISR(busTask, &woken);
+        portYIELD_FROM_ISR(woken);
+    }
+
+    static void busLoop(void*) {
+        uint32_t lastDiag = 0;
+        for (;;) {
+            ulTaskNotifyTake(pdTRUE, 1);                     // la interrupción o, como mucho, 1 ms
+            xSemaphoreTake(busMtx, portMAX_DELAY);
+            bus->ParseMessages();
+            if (bus->ReadResetAddressChanged()) {
+                st.address = bus->GetN2kSource();
+                st.addrChanges++;
+                prefs.putUChar("addr", st.address);
+            }
+            if (st.open && millis() - lastDiag >= 1000) {
+                lastDiag = millis();
+                readDiag();
+                st.ints = intCount;
+            }
+            xSemaphoreGive(busMtx);
+        }
+    }
+
+    static const char* manufacturer(uint16_t c) {
+        switch (c) {
+            case 135: return "Airmar";
+            case 137: return "Maretron";
+            case 140: return "Lowrance";
+            case 229: return "Garmin";
+            case 273: return "Actisense";
+            case 275: return "Navico";
+            case 381: return "B&G";
+            case 1851: return "Raymarine";
+            case 1855: return "Furuno";
+            case 1857: return "Simrad";
+            case 2046: return "sin registrar";
+            default: return nullptr;
+        }
+    }
+
+    void devicesJson(JsonArray out) {
+        if (!devList || !busMtx) return;
+        xSemaphoreTake(busMtx, portMAX_DELAY);
+        for (uint8_t src = 0; src < 252; src++) {
+            const tNMEA2000::tDevice* d = devList->FindDeviceBySource(src);
+            if (!d) continue;
+            JsonObject o = out.add<JsonObject>();
+            o["src"] = src;
+            o["man"] = d->GetManufacturerCode();
+            const char* mn = manufacturer(d->GetManufacturerCode());
+            if (mn) o["manName"] = mn;
+            if (d->GetModelID() && d->GetModelID()[0]) o["model"] = d->GetModelID();
+            if (d->GetSwCode() && d->GetSwCode()[0]) o["sw"] = d->GetSwCode();
+            o["cls"] = d->GetDeviceClass();
+            o["fn"] = d->GetDeviceFunction();
+            o["unique"] = d->GetUniqueNumber();
+        }
+        xSemaphoreGive(busMtx);
+    }
+
     void begin() {
         prefs.begin("n2k", false);
         const uint8_t addr = (uint8_t)prefs.getUChar("addr", (uint8_t)Cfg.n2kAddr);
-        bus = new tNMEA2000_mcp((unsigned char)Cfg.canCs, Cfg.canMHz == 8 ? MCP_8MHz : MCP_16MHz,
-                                Cfg.canInt >= 0 ? (unsigned char)Cfg.canInt : 0xff);
+        // Sin el pin de interrupción para la librería: su rutina lee el SPI dentro de la interrupción, y en el ESP32 eso
+        // no es seguro. La interrupción (si está) solo despierta la tarea del bus.
+        bus = new tNMEA2000_mcp((unsigned char)Cfg.canCs, Cfg.canMHz == 8 ? MCP_8MHz : MCP_16MHz, 0xff);
         bus->SetN2kCANMsgBufSize(8);
         bus->SetN2kCANReceiveFrameBufSize(100);
         char serial[16];
@@ -88,13 +196,27 @@ namespace N2k {
         bus->SetMode(tNMEA2000::N2km_ListenAndNode, addr);
         bus->EnableForward(false);
         bus->SetMsgHandler(handler);
+        devList = new tN2kDeviceList(bus);                    // otros equipos del bus (nombre y modelo, para la WebUI)
+        busMtx = xSemaphoreCreateMutex();
         st.open = bus->Open();
         st.address = addr;
+        st.unique = unique;
         Serial.printf("n2k: %s, CS %d, %d MHz, dirección %u\n", st.open ? "abierto" : "sin MCP2515", Cfg.canCs, Cfg.canMHz, addr);
+        // El MCP2515 solo guarda 2 tramas: hay que leerlo enseguida. Tarea propia, por encima del bucle de Arduino, que
+        // atiende el bus cada milisegundo (y al instante con la interrupción). Así no se pierden las peticiones del
+        // plotter (reclamo de dirección, información del producto) mientras la WiFi, el BLE o la WebUI tienen trabajo.
+        xTaskCreatePinnedToCore(busLoop, "n2k", 6144, nullptr, 5, &busTask, 1);
+        if (st.open && Cfg.canInt >= 0) {
+            pinMode(Cfg.canInt, INPUT_PULLUP);
+            attachInterrupt(digitalPinToInterrupt(Cfg.canInt), onInt, FALLING);
+            st.intPin = Cfg.canInt;
+        }
     }
 
     static bool send(const tN2kMsg& m) {
+        xSemaphoreTake(busMtx, portMAX_DELAY);
         const bool ok = bus->SendMsg(m);
+        xSemaphoreGive(busMtx);
         if (ok) st.sent++; else st.errors++;
         return ok;
     }
@@ -189,11 +311,6 @@ namespace N2k {
 
     void loop(GC::Gate& gate) {
         if (!bus) return;
-        bus->ParseMessages();
-        if (bus->ReadResetAddressChanged()) {
-            st.address = bus->GetN2kSource();
-            prefs.putUChar("addr", st.address);
-        }
         const uint32_t now = millis();
         if (st.hasOwn && now - st.ownAt < 60000) gate.setOwn(st.ownLat, st.ownLon);
         // como mucho un blanco cada 20 ms: no saturar el bus

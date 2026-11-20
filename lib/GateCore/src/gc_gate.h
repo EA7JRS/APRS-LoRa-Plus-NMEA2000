@@ -90,7 +90,22 @@ namespace GC {
             std::vector<uint8_t> f;
             for (size_t i = 0; i < n; i++) if (kiss_.push(d[i], f)) onFrame(f.data(), f.size(), now);
         }
-        void resetKiss() { kiss_.clear(); }
+        void resetKiss() { kiss_.clear(); tncLine_.clear(); }
+
+        // Texto TNC2 por líneas ("SRC>DST,PATH:info\n"): tracker con el BLE en TNC2 (servicio UART de Nordic)
+        void onTnc2Bytes(const uint8_t* d, size_t n, uint32_t now) {
+            for (size_t i = 0; i < n; i++) {
+                const char c = (char)d[i];
+                if (c == '\n' || c == '\r') {
+                    if (!tncLine_.empty()) {
+                        Ax25 a;
+                        if (tnc2Parse(tncLine_, a)) { stats_.frames++; onPacket(a, now, 0); }
+                        tncLine_.clear();
+                    }
+                } else if (tncLine_.size() < 512) tncLine_ += c;
+                else tncLine_.clear();                                  // línea imposible: se descarta
+            }
+        }
 
         void onFrame(const uint8_t* d, size_t n, uint32_t now) {
             Ax25 a;
@@ -182,6 +197,7 @@ namespace GC {
         GateOptions opt_;
         NMEA0183::AisTable table_;
         KissReader kiss_;
+        std::string tncLine_;
         std::vector<bool> dirty_ = std::vector<bool>(NMEA0183::AisTable::MAX_STATIONS, false);
         std::vector<double> alt_ = std::vector<double>(NMEA0183::AisTable::MAX_STATIONS, NAN);
         std::deque<uint32_t> lost_;

@@ -46,9 +46,10 @@ El tracker admite **una sola conexión Bluetooth**: si la app del móvil está c
 
 ### Por Bluetooth
 
-1. En el tracker, **BLE KISS** activado (WebUI > Bluetooth).
-2. Desconecta la app del móvil del tracker (o conéctala por WiFi).
-3. En la pasarela, *Recibir del tracker = Bluetooth*. Vacío = el primer tracker que anuncie el servicio KISS; si hay varios, escribe parte de su nombre.
+1. En el tracker (también el MAPRS transponder), WebUI > Bluetooth: **activado**, tipo **BLE** (no *Clásico*: el XIAO ESP32-S3 no tiene Bluetooth clásico) y protocolo **KISS** (vale también TNC2).
+2. El tracker solo admite **un** enlace BLE: si la app del móvil o el plotter APRS LoRa+ están conectados a él por BLE, deja de anunciarse y la pasarela no lo ve. Desconéctalos, o que vayan por WiFi.
+3. En la pasarela, *Recibir del tracker = Bluetooth*. Vacío = el primer tracker que anuncie el servicio KISS (si ninguno, uno con TNC2 y «LoRa» en el nombre); si hay varios, escribe parte de su nombre (`MAPRS` para el transponder).
+4. En la WebUI, *Vistos por BLE* dice qué equipos ha visto en la última búsqueda y con qué servicio (KISS, TNC2 o ninguno).
 
 *Los dos* usa los dos enlaces a la vez (las tramas repetidas no hacen daño).
 
@@ -63,7 +64,7 @@ El tracker admite **una sola conexión Bluetooth**: si la app del móvil está c
 ## 7. WebUI
 
 - **Tracker**: enlace (WiFi, BLE), bytes y tramas recibidos, posiciones, ignoradas y lejanas.
-- **NMEA 2000**: bus abierto (si no, el MCP2515 no contesta: cristal, CS, cableado), dirección en el bus, mensajes enviados y fallos, equipos oídos, posición y hora del barco.
+- **NMEA 2000**: bus abierto (si no, el MCP2515 no contesta: cristal, CS, cableado), dirección en el bus, mensajes enviados y fallos, equipos oídos, posición y hora del barco, y el diagnóstico del bus: *Errores CAN* (contadores de emisión y de recepción del MCP2515, error pasivo, fuera del bus), *Tramas perdidas*, *Interrupción* y *Equipos del bus* (cada uno con su dirección, fabricante y modelo, p. ej. «Garmin GPSMAP 943»).
 - **Ambiente**: temperatura, humedad, luz, reloj, batería; con anemómetro, viento de 3 s, medio de 2 y 10 min, racha, Beaufort e impulsos por segundo (para calibrar).
 - **Blancos AIS**: nombre, MMSI, clase, posición, rumbo y velocidad, distancia al barco y hace cuánto se oyó.
 - **Últimos paquetes**: los 20 últimos en texto TNC2.
@@ -103,7 +104,7 @@ Fichero `/gw_conf.json` (WebUI > Configuración > JSON):
 | `gps.on` | false | emitir el GPS del tracker al bus (129025/129026/129029) si no hay otra antena GPS |
 | `gps.ownCall` | vacío | indicativo-SSID del propio tracker (el barco), p. ej. `EA7JRS-5` |
 | `gps.wx` | false | emitir al bus el tiempo de internet de la app (130306 viento, 130314 presión, 130316 temperatura) de la baliza meteo del barco, si no hay sensores a bordo |
-| `n2k.cs`, `n2k.mhz`, `n2k.int` | 44, 16, -1 | CS del MCP2515 (D7), cristal (16 u 8 MHz), interrupción (-1 = sin ella) |
+| `n2k.cs`, `n2k.mhz`, `n2k.int` | 44, 16, 43 | CS del MCP2515 (D7), cristal (16 u 8 MHz), interrupción (D6 = GPIO43; -1 = sin ella, se consulta cada ms) |
 | `n2k.addr` | 34 | dirección preferida en el bus (se negocia y se guarda la que queda) |
 | `n2k.env`, `n2k.envS` | true, 5 | temperatura y humedad al bus, cada cuántos segundos |
 | `log.on`, `log.sda`, `log.scl` | true, 5, 6 | HAT XIAO-LOG por I2C (D4 / D5) |
@@ -117,12 +118,27 @@ Fichero `/gw_conf.json` (WebUI > Configuración > JSON):
 | Síntoma | Qué mirar |
 |---|---|
 | *Bus: sin MCP2515* | cristal (`n2k.mhz`), XIAO bien asentado en el kit CAN, CS en D7 |
-| Bus abierto pero el plotter no ve nada | CAN-H y CAN-L cruzados, sin alimentación del bus, terminación de más (P1), capa AIS apagada |
+| Bus abierto pero el plotter no ve nada | ver *El plotter no ve la pasarela*, abajo; capa AIS apagada |
 | *TCP: no encuentro el tracker* | KISS WiFi activado en el tracker, los dos en la misma red; prueba con la IP del tracker |
-| *BLE: no aparece el tracker* | la app del móvil conectada al tracker por BLE (solo admite una conexión), BLE KISS apagado |
+| *BLE: no aparece ningún tracker* | Bluetooth del tracker apagado o en *Clásico*; la app o el plotter conectados a él por BLE (solo admite una conexión) |
+| *BLE: veo equipos, pero ninguno con KISS ni TNC2* | el tracker anuncia otro servicio: WebUI del tracker > Bluetooth, BLE y KISS |
 | Ambiente vacío | el arreglo de D10 del XIAO-LOG; `log.on` |
 | Viento a 0 con viento | `anemo.on`, cable en D3 y GND; los impulsos de la WebUI deben subir al girar |
 | Alarmas de colisión | apartado 8 |
+
+### El plotter no ve la pasarela
+
+Mira *NMEA 2000* en la WebUI con el plotter encendido:
+
+| Lo que sale | Qué pasa |
+|---|---|
+| *Recibidos* 0 y ningún equipo, *Errores CAN* de recepción subiendo | la pasarela oye el bus pero no lo entiende: cristal (`n2k.mhz`), CAN-H y CAN-L cruzados |
+| *Recibidos* 0, emisión en 128 o más (*error pasivo*) o *fuera del bus* | nadie contesta a lo que manda: sin alimentación del bus (pin 2, rojo, 12 V), CAN-H / CAN-L sin unir, GND del bus sin unir a la borna |
+| El plotter sale en *Equipos del bus* pero la pasarela no sale en su lista | la pasarela oye y debería hacerse ver: espera 1 o 2 min o apaga y enciende el plotter; si la *Dirección* cambia una y otra vez, hay otro equipo con la misma (cambia `n2k.addr`) |
+| *Tramas perdidas* subiendo | bus muy cargado: deja la interrupción en D6 |
+| Todo bien en la WebUI, la pasarela en la lista del plotter, pero sin blancos | capa AIS del plotter apagada; algunos plotters no dibujan los MMSI que empiezan por 8 (los que inventa la pasarela): prueba una estación con la etiqueta «AIS:» y su MMSI real |
+
+En el Garmin GPSMAP, la lista está en *Configuración > Comunicaciones > Configuración NMEA 2000 > Lista de dispositivos*. Revisa también que el bus tenga sus **dos** terminadores (uno en cada extremo; con la alimentación quitada, entre CAN-H y CAN-L se miden unos 60 Ω) y que el puente P1 del kit siga abierto.
 
 ## 11. Licencia y créditos
 

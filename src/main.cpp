@@ -85,6 +85,7 @@ void loop() {
     uint8_t buf[512];
     size_t n;
     while ((n = TrackerLink::read(buf, sizeof buf)) > 0) gate.onKissBytes(buf, n, millis());
+    while ((n = TrackerLink::readText(buf, sizeof buf)) > 0) gate.onTnc2Bytes(buf, n, millis());
     N2k::loop(gate);
     LogHat::loop();
     Anemo::loop();

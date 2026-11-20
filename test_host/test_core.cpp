@@ -154,6 +154,17 @@ static void testGate() {
     send3("EA7JRS-5", "!3725.00N/00559.00W_200/012g020t059b10110");
     AprsWx wx; uint32_t wat;
     CHECK(g3.ownWx(wx, wat) && wx.windDir == 200 && near(wx.windMs, 12 * 0.44704) && near(wx.tempC, (59 - 32) * 5.0 / 9.0) && near(wx.pressPa, 101100));
+    // TNC2 en texto (BLE en TNC2, servicio UART de Nordic), en trozos como llegan por BLE
+    Gate g4; GateEvent e4;
+    const std::string l1 = "EB7TNC-9>APLRT1,WIDE1-1:!3725.00N/00559.00W>180/005\r\nEB7T", l2 = "NC-7>APLRT1:!3726.00N/00559.00W>\n";
+    g4.onTnc2Bytes((const uint8_t*)l1.data(), l1.size(), 1000);
+    CHECK(g4.table().find("EB7TNC-9") >= 0 && g4.table().find("EB7TNC-7") < 0);
+    g4.onTnc2Bytes((const uint8_t*)l2.data(), l2.size(), 1000);
+    CHECK(g4.table().find("EB7TNC-7") >= 0 && g4.stats().frames == 2);
+    const std::string bad = "sin forma\n";
+    g4.onTnc2Bytes((const uint8_t*)bad.data(), bad.size(), 1000);
+    CHECK(g4.stats().frames == 2);
+    CHECK(g4.poll(1000, e4) && e4.kind == GateEvent::STATIC);
 }
 
 static void testAnemo() {

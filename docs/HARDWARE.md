@@ -21,7 +21,7 @@ Copyright (C) 2026 Manuel - EA7JRS. GPL-3.0-or-later.
 | D2 | 3 | — | — (libre) |
 | D3 | 4 | — | anemómetro de cazoletas (opcional) |
 | D4 / D5 | 5 / 6 | — | I2C SDA / SCL |
-| D6 | 43 | — | — |
+| D6 | 43 | **INT del MCP2515** (avisa de cada trama) | — |
 | D7 | 44 | **CS del MCP2515** | — |
 | D8 / D9 / D10 | 7 / 8 / 9 | **SPI** SCK / MISO / MOSI | D10 = alimentación de los sensores ⚠️ |
 
@@ -54,6 +54,8 @@ El conector Micro-C de NMEA 2000 (5 pines):
 - Consumo: unos 100-150 mA a 5 V, es decir, unos 70 mA a 12 V tras el convertidor: cuenta **2 LEN** (1 LEN = 50 mA) al calcular el bus.
 - Velocidad: 250 kbit/s, fija.
 - **Cristal del MCP2515**: mira lo que pone el cristal plateado del kit CAN (16.000 u 8.000). Si no coincide con `n2k.mhz` (16 por defecto), el bus no funciona.
+- **Interrupción**: el MCP2515 solo guarda dos tramas. La pasarela lo atiende en una tarea propia cada milisegundo y, con `n2k.int` en D6 (GPIO43, de serie), en cuanto llega una. Si no, en un bus cargado se pierden las peticiones del plotter y el plotter no llega a ver la pasarela.
+- Si el plotter no ve la pasarela: apartado *El plotter no ve la pasarela* del manual.
 
 ## Anemómetro de cazoletas (opcional)
 

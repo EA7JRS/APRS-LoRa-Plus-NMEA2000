@@ -161,7 +161,7 @@ namespace N2k {
             ulTaskNotifyTake(pdTRUE, 1);                     // la interrupción o, como mucho, 1 ms
             xSemaphoreTake(busMtx, portMAX_DELAY);
             bus->ParseMessages();                            // si no se abrió, la librería lo vuelve a intentar
-            st.open = bus->IsOpen();
+            st.open = static_cast<tNMEA2000*>(bus)->IsOpen();   // tNMEA2000_mcp tapa IsOpen con un miembro propio
             if (!st.open && millis() - lastProbe >= 10000) { lastProbe = millis(); st.spi = probe(); }
             if (bus->ReadResetAddressChanged()) {
                 st.address = bus->GetN2kSource();
